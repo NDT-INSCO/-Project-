@@ -222,6 +222,7 @@ export default function App() {
             <AiCustomerPlatform
               language={language}
               onOpenMessengerWithQuery={(query) => handleOpenMessenger(undefined, query)}
+              onNavigateTab={(tab) => navigateToTab(tab)}
             />
           </div>
         )}

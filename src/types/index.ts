@@ -44,6 +44,10 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
   suggestedActions?: { label: string; action: string; payload?: any }[];
+  suggestedTab?: string;
+  tabLabel?: string;
+  tabReason?: string;
+  suggestedQuestions?: string[];
 }
 
 export interface ServiceRFQ {

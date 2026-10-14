@@ -20,20 +20,25 @@ import {
   MapPin,
   Radio,
   ExternalLink,
-  Loader2
+  Loader2,
+  Compass,
+  ArrowRight
 } from 'lucide-react';
 import { Language, ChatMessage } from '../types';
 import { COMPANY_DETAILS } from '../data/inscoData';
 import { LiveVoiceModal } from './LiveVoiceModal';
+import { AnimatedEngineerAvatar } from './AnimatedEngineerAvatar';
 
 interface AiCustomerPlatformProps {
   language: Language;
   onOpenMessengerWithQuery?: (query: string) => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
 export const AiCustomerPlatform: React.FC<AiCustomerPlatformProps> = ({
   language,
-  onOpenMessengerWithQuery
+  onOpenMessengerWithQuery,
+  onNavigateTab
 }) => {
   const isAr = language === 'ar';
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -41,13 +46,24 @@ export const AiCustomerPlatform: React.FC<AiCustomerPlatformProps> = ({
       id: 'welcome',
       sender: 'assistant',
       text: isAr
-        ? `أهلاً بك في منصة الاستشارات الهندسية التفاعلية لشركة إنسكو (INSCO). أنا المستشار الهندسي الذكي للشركة، جاهز للإجابة على استفساراتك الفنية حول الفحوصات غير الإتلافية (NDT)، المعالجة الحرارية بعد اللحام (PWHT)، معايير أكواد ASME / API / AWS، وجاهزية أسطولنا المملوك بالكامل. يمكنك الكتابة، التحدث بالميكروفون، أو استخدام المكالمة الصوتية المباشرة!`
-        : `Welcome to the INSCO Interactive Engineering Consultation Platform. I am your specialized AI engineering consultant, ready to answer your technical inquiries regarding NDT methods, PWHT cycles, ASME / API / AWS standards, and our 100% company-owned fleet. You can type, speak with microphone, or start a live voice call!`,
+        ? `أهلاً بك في منصة الاستشارات الهندسية التفاعلية لشركة إنسكو (INSCO)! أنا المهندس الاستشاري الذكي للشركة، متصل بنموذج Gemini الذكي لمناقشة كافة متطلباتك الفنية والمشاريع، توضيح معايير كودات ASME / API / AWS، توجيهك فوراً للقسم المختص بموقعنا عند طلب أي خدمة، والإجابة الدقيقة عن جاهزية أسطولنا المملوك بالكامل. يمكنك الكتابة، التحدث صوتياً، أو الضغط على الأسئلة المقترحة لمناقشة التفاصيل مباشرة!`
+        : `Welcome to the INSCO Interactive AI Engineering Consultation Platform! I am your AI senior consultant connected to Gemini, ready to intelligently discuss technical project scopes, clarify ASME / API / AWS standards, guide you directly to the relevant site section upon request, and answer regarding our 100% company-owned fleet. You can type, speak with microphone, or choose suggested topics to start!`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      suggestedTab: 'services',
+      tabLabel: isAr ? 'استعراض أسطول ومعدات إنسكو' : 'Explore Fleet & Services',
+      tabReason: isAr ? 'للاطلاع المباشر على مواصفات وحدات PWHT الأوتوماتيكية وأجهزة NDT' : 'View full technical specifications of our company-owned fleet',
+      suggestedQuestions: isAr ? [
+        'ما هي مواصفات وقدرات أسطول وحدات الـ PWHT بقدرة 65 kW؟',
+        'ما هو الفارق بين فحص Phased Array PAUT والفحص الإشعاعي RT؟',
+        'كيف أطلب عرض سعر رسمي فوري لمشروعي؟'
+      ] : [
+        'What are the specifications of INSCO\'s 65 kW PWHT fleet?',
+        'What is the difference between PAUT and RT?',
+        'How can I get an immediate formal RFQ for my project?'
+      ],
       suggestedActions: [
-        { label: isAr ? 'قدرات أسطول PWHT الأوتوماتيكي' : 'PWHT Fleet Capabilities', action: 'query', payload: 'ما هي مواصفات وقدرات أسطول وحدات المعالجة الحرارية PWHT التابعة لإنسكو؟' },
-        { label: isAr ? 'الفارق بين PAUT و RT' : 'PAUT vs RT Comparison', action: 'query', payload: 'ما هو الفارق بين فحص Phased Array UT والفحص الإشعاعي RT ومتى يفضل استخدام كل منهما؟' },
-        { label: isAr ? 'شهادات الآيزو والتراخيص' : 'ISO Accreditations', action: 'query', payload: 'ما هي أرقام شهادات الآيزو وتراخيص شركة إنسكو الرسمية؟' }
+        { label: isAr ? 'طلب عرض سعر فوري' : 'Request Instant RFQ', action: 'open_rfq', payload: 'طلب عرض سعر فوري' },
+        { label: isAr ? 'محادثة عبر واتساب مباشر' : 'WhatsApp Us Directly', action: 'whatsapp' }
       ]
     }
   ]);
@@ -198,7 +214,11 @@ export const AiCustomerPlatform: React.FC<AiCustomerPlatformProps> = ({
         sender: 'assistant',
         text: replyText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        suggestedActions: [
+        suggestedTab: data.suggestedTab || undefined,
+        tabLabel: data.tabLabel || undefined,
+        tabReason: data.tabReason || undefined,
+        suggestedQuestions: data.suggestedQuestions || undefined,
+        suggestedActions: data.suggestedActions || [
           { label: isAr ? 'طلب عرض سعر بهذا الخصوص' : 'Request Quotation', action: 'open_rfq', payload: text },
           { label: isAr ? 'محادثة عبر واتساب مباشر' : 'WhatsApp Us Directly', action: 'whatsapp' }
         ]
@@ -211,12 +231,24 @@ export const AiCustomerPlatform: React.FC<AiCustomerPlatformProps> = ({
         id: `bot-fallback-${Date.now()}`,
         sender: 'assistant',
         text: isAr
-          ? `بناءً على سجلات شركة إنسكو (INSCO): نمتلك أسطولاً متكاملاً وواسعاً من وحدات المعالجة الحرارية الأوتوماتيكية 65 kW جاهزة للتحرك الفوري من مستودعات القاهرة والجيزة، بالإضافة لأسطول NDT متكامل يضم مصادر جاما (Ir-192 / Se-75) وأجهزة PAUT ومحللات XRF. جميع الأعمال تخضع لإشراف كبير مراجعين CQI-IRCA وفاحصين ASNT Level II مع شهادات آيزو 9001/14001/45001 سارية حتى 2028. يمكنك التواصل معنا مباشرة على +20 109 077 7202.`
-          : `INSCO operates a comprehensive, company-owned fleet of 65 kW automatic PWHT units stored in Cairo/Giza and an extensive NDT fleet (PAUT, RT Ir-192/Se-75, UT, MT, PT, PMI XRF). All works are supervised under our triple ISO-certified system (through 2028), in-house CQI-IRCA lead auditor, and ENRRA radiation licensing. You can contact us directly at +20 109 077 7202.`,
+          ? `أهلاً بك يا فندم! بخصوص استفسارك: شركة إنسكو تمتلك أسطولاً متكاملاً مملوكاً بالكامل 100% يشمل وحدات معالجة حرارية PWHT أوتوماتيكية بقدرة 65 kW وأجهزة فحص NDT متقدمة (PAUT, RT, UT, MT, PT, PMI) معتمدة تحت آيزو 9001/14001/45001 وترخيص ENRRA النووي. يسعدنا توجيهك فوراً للقسم المختص أو التواصل المباشر.`
+          : `Hello! Regarding your inquiry: INSCO operates a 100% company-owned fleet including automatic 65 kW PWHT units and advanced NDT equipment (PAUT, RT, UT, MT, PT, PMI) under ISO 9001/14001/45001 and ENRRA radiation licensing.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        suggestedTab: 'messenger',
+        tabLabel: isAr ? 'الانتقال إلى ماسنجر طلب الخدمات وRFQs' : 'Open Service Messenger',
+        tabReason: isAr ? 'لتسجيل تفاصيل متطلباتك والحصول على تسعير رسمي فوري' : 'Submit your project scope for immediate formal estimation',
+        suggestedQuestions: isAr ? [
+          'ما هي سرعة التعبئة والتواجد في الموقع؟',
+          'ما هي مواصفات أسطول وحدات الـ PWHT بقدرة 65 kW؟',
+          'هل توفرون عمالة لحام معتمدة ASME / AWS؟'
+        ] : [
+          'What is your mobilization timeframe?',
+          'What are the specs of your 65 kW PWHT units?',
+          'Do you supply certified welders?'
+        ],
         suggestedActions: [
-          { label: isAr ? 'طلب عرض سعر' : 'Request RFQ', action: 'open_rfq', payload: text },
-          { label: isAr ? 'واتساب' : 'WhatsApp', action: 'whatsapp' }
+          { label: isAr ? 'طلب عرض سعر فوري' : 'Request RFQ', action: 'open_rfq', payload: text },
+          { label: isAr ? 'واتساب مباشر' : 'Direct WhatsApp', action: 'whatsapp' }
         ]
       };
       setMessages(prev => [...prev, fallbackMsg]);
@@ -287,6 +319,14 @@ export const AiCustomerPlatform: React.FC<AiCustomerPlatformProps> = ({
           </p>
         </div>
 
+        {/* Hero Graphic Showcase: Engineer in Helmet & Vest emerging from Gear writing client discussion */}
+        <AnimatedEngineerAvatar
+          size="hero"
+          language={language}
+          showDiscussionNotes={true}
+          className="mb-8"
+        />
+
         {/* Feature Switches Bar (Live Voice, Search Grounding, Maps) */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4 bg-[#11142e] p-3 rounded-2xl border border-[#212754]">
           <div className="flex flex-wrap items-center gap-2">
@@ -331,19 +371,18 @@ export const AiCustomerPlatform: React.FC<AiCustomerPlatformProps> = ({
         {/* Main Chat Container */}
         <div className="bg-[#11132b] rounded-2xl border-2 border-amber-500/40 shadow-2xl overflow-hidden flex flex-col h-[650px]">
           {/* Chat Top Bar */}
-          <div className="bg-[#161938] px-5 py-3.5 border-b border-[#232958] flex items-center justify-between">
+          <div className="bg-[#161938] px-5 py-3 border-b border-[#232958] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 text-slate-950 flex items-center justify-center font-bold shadow-md">
-                <Bot className="w-6 h-6" />
-                <span className="absolute -bottom-0.5 -end-0.5 w-3 h-3 bg-emerald-400 border-2 border-[#161938] rounded-full"></span>
-              </div>
+              {/* Dynamic Animated Engineer in Gear Avatar */}
+              <AnimatedEngineerAvatar size="chat-bar" language={language} />
               <div>
                 <div className="flex items-center gap-2">
                   <span className="font-bold text-white text-sm">
                     {isAr ? 'مستشار إنسكو الهندسي الذكي' : 'INSCO Engineering AI Advisor'}
                   </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold">
-                    {isAr ? 'متصل الآن' : 'Online'}
+                  <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    {isAr ? 'متصل ومستعد للمناقشة' : 'Online & Ready'}
                   </span>
                 </div>
                 <div className="text-[11px] text-slate-400">
@@ -351,7 +390,7 @@ export const AiCustomerPlatform: React.FC<AiCustomerPlatformProps> = ({
                     ? (isAr ? 'متصل بـ Google Search للكودات والمواصفات' : 'Connected to Google Search Grounding')
                     : activeGrounding === 'maps'
                     ? (isAr ? 'متصل بـ Google Maps للمواقع والمحطات' : 'Connected to Google Maps Grounding')
-                    : (isAr ? 'مرجع معتمد لـ ASME, API, AWS, ISO, ENRRA' : 'ASME, API, AWS, ISO & ENRRA Grounded')}
+                    : (isAr ? 'يدرس ويوثق مناقشاتك طبقاً لـ ASME, API, AWS, ISO' : 'Logging discussions per ASME, API, AWS, ISO')}
                 </div>
               </div>
             </div>
@@ -387,15 +426,13 @@ export const AiCustomerPlatform: React.FC<AiCustomerPlatformProps> = ({
                     isAssistant ? 'ms-0 me-auto' : 'ms-auto me-0 flex-row-reverse'
                   }`}
                 >
-                  <div
-                    className={`w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-xs font-bold ${
-                      isAssistant
-                        ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                        : 'bg-indigo-600 text-white'
-                    }`}
-                  >
-                    {isAssistant ? <Bot className="w-4 h-4" /> : <User className="w-4 h-4" />}
-                  </div>
+                  {isAssistant ? (
+                    <AnimatedEngineerAvatar size="sm" language={language} />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold bg-indigo-600 text-white shadow-md border border-indigo-400/40">
+                      <User className="w-4 h-4" />
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <div
@@ -430,6 +467,60 @@ export const AiCustomerPlatform: React.FC<AiCustomerPlatformProps> = ({
                           {copiedId === msg.id ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                           <span className="hidden sm:inline">{copiedId === msg.id ? (isAr ? 'تم النسخ' : 'Copied') : (isAr ? 'نسخ' : 'Copy')}</span>
                         </button>
+                      </div>
+                    )}
+
+                    {/* Suggested Site Section Routing Box if recommended by Gemini */}
+                    {isAssistant && msg.suggestedTab && (
+                      <div className="mt-2.5 p-3 sm:p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-[#161a3f] to-amber-500/10 border-2 border-amber-400/50 shadow-lg text-start">
+                        <div className="flex items-center justify-between gap-2 mb-1.5">
+                          <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                            <Compass className="w-4 h-4 text-amber-400 animate-spin" style={{ animationDuration: '8s' }} />
+                            <span>{isAr ? 'القسم المقترح في الموقع لطلبك:' : 'Recommended Website Section:'}</span>
+                          </span>
+                          <span className="text-[10px] text-amber-300/90 bg-amber-400/20 px-2 py-0.5 rounded-full font-mono font-bold">
+                            {isAr ? 'توجيه ذكي' : 'Smart Routing'}
+                          </span>
+                        </div>
+                        {msg.tabReason && (
+                          <p className="text-xs text-slate-300 mb-2.5 leading-relaxed font-medium">
+                            {msg.tabReason}
+                          </p>
+                        )}
+                        <button
+                          onClick={() => {
+                            if (onNavigateTab && msg.suggestedTab) {
+                              onNavigateTab(msg.suggestedTab);
+                              window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                          }}
+                          className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-md transition transform hover:scale-[1.01] active:scale-[0.99] cursor-pointer border border-amber-300"
+                        >
+                          <span>{msg.tabLabel || (isAr ? 'الانتقال إلى القسم الآن' : 'Navigate to Section Now')}</span>
+                          <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Interactive Follow-Up Questions from Gemini */}
+                    {isAssistant && msg.suggestedQuestions && msg.suggestedQuestions.length > 0 && (
+                      <div className="pt-2 text-start">
+                        <span className="text-[11px] font-bold text-slate-400 mb-1.5 flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-amber-400" />
+                          <span>{isAr ? 'نقاط ومحاور مقترحة لمناقشة المهندس الاستشاري:' : 'Follow-up discussion topics:'}</span>
+                        </span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {msg.suggestedQuestions.map((q, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => handleSendMessage(q)}
+                              className="text-[11px] px-3 py-1.5 rounded-xl bg-[#161a3d] hover:bg-amber-500/20 text-slate-200 hover:text-amber-300 border border-[#2b3570] hover:border-amber-400 transition text-start cursor-pointer flex items-center gap-1.5 shadow-sm"
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
+                              <span>{q}</span>
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     )}
 

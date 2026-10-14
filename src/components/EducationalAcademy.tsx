@@ -16,11 +16,15 @@ import {
   Send,
   Award,
   RefreshCw,
-  Film
+  Film,
+  GraduationCap,
+  Wrench
 } from 'lucide-react';
 import { Language, EducationalDefect, QuizQuestion } from '../types';
 import { NDT_METHODS, EDUCATIONAL_DEFECTS, STANDARDS_LIBRARY, SAMPLE_QUIZZES } from '../data/inscoData';
 import { IndustrialVideoGen } from './IndustrialVideoGen';
+import { DisciplineCurriculumView } from './academy/DisciplineCurriculumView';
+import { InteractiveWorkshops } from './academy/InteractiveWorkshops';
 
 interface EducationalAcademyProps {
   language: Language;
@@ -28,7 +32,7 @@ interface EducationalAcademyProps {
 
 export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language }) => {
   const isAr = language === 'ar';
-  const [activeSubTab, setActiveSubTab] = useState<'methods' | 'defects' | 'pwht_curve' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen'>('defects');
+  const [activeSubTab, setActiveSubTab] = useState<'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen'>('curriculum');
 
   // Defect Simulator State
   const [selectedDefect, setSelectedDefect] = useState<EducationalDefect>(EDUCATIONAL_DEFECTS[0]);
@@ -185,6 +189,8 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
         {/* Sub-Navigation Tabs */}
         <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
           {[
+            { id: 'curriculum', labelAr: 'المناهج والمسارات المهنية الشاملة (8 مجالات)', labelEn: 'All Disciplines & Roadmaps', icon: GraduationCap, highlight: true },
+            { id: 'workshops', labelAr: 'ورش العمل والمعامل التفاعلية (6 مختبرات)', labelEn: 'Interactive Workbenches', icon: Wrench, highlight: true },
             { id: 'defects', labelAr: 'محاكي عيوب اللحام (Defect Simulator)', labelEn: 'Defect Simulator', icon: Activity },
             { id: 'pwht_curve', labelAr: 'محاكي منحنيات PWHT الحرارية', labelEn: 'PWHT Thermal Curve', icon: Flame },
             { id: 'methods', labelAr: 'دليل تقنيات الفحص الـ 12', labelEn: '12 NDT Methods Guide', icon: Layers },
@@ -201,7 +207,9 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
                 onClick={() => setActiveSubTab(tab.id as any)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                   isCurrent
-                    ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20'
+                    ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 scale-[1.02]'
+                    : tab.highlight
+                    ? 'bg-[#151940] text-amber-300 hover:text-white hover:bg-[#1f2558] border border-amber-500/40 ring-1 ring-amber-500/20'
                     : 'bg-[#121535] text-slate-300 hover:text-white hover:bg-[#1a1f48] border border-[#232958]'
                 }`}
               >
@@ -211,6 +219,19 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             );
           })}
         </div>
+
+        {/* Sub-Tab 0A: All Disciplines & Career Roadmaps Curriculum */}
+        {activeSubTab === 'curriculum' && (
+          <DisciplineCurriculumView
+            language={language}
+            onSelectWorkshop={() => setActiveSubTab('workshops')}
+          />
+        )}
+
+        {/* Sub-Tab 0B: Interactive Hands-on Visual Workbenches */}
+        {activeSubTab === 'workshops' && (
+          <InteractiveWorkshops language={language} />
+        )}
 
         {/* Sub-Tab 1: Defect Diagnostic Simulator */}
         {activeSubTab === 'defects' && (

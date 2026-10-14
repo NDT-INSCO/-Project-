@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, Volume2, X, PhoneCall, Radio, Sparkles, Activity } from 'lucide-react';
 import { Language } from '../types';
+import { AnimatedEngineerAvatar } from './AnimatedEngineerAvatar';
 
 interface LiveVoiceModalProps {
   isOpen: boolean;
@@ -200,11 +201,13 @@ export const LiveVoiceModal: React.FC<LiveVoiceModalProps> = ({ isOpen, onClose,
             : 'Speak naturally with INSCO Senior Engineer and receive low-latency vocal responses.'}
         </p>
 
-        {/* Pulsing Visual Wave Sphere */}
-        <div className="relative w-36 h-36 mx-auto mb-8 flex items-center justify-center">
-          <div className={`absolute inset-0 rounded-full bg-gradient-to-tr from-amber-500 to-indigo-600 opacity-20 blur-xl ${isTalking ? 'animate-ping' : ''}`}></div>
-          <div className={`w-28 h-28 rounded-full bg-gradient-to-b from-[#1e2350] to-[#121430] border-2 border-amber-400 flex items-center justify-center shadow-2xl transition-transform ${isTalking ? 'scale-110' : 'scale-100'}`}>
-            <Mic className={`w-12 h-12 text-amber-400 ${isTalking ? 'animate-pulse' : ''}`} />
+        {/* Pulsing Visual Wave with Animated Engineer Emerging from Gear */}
+        <div className="relative mb-6 flex flex-col items-center justify-center">
+          <div className={`absolute w-36 h-36 rounded-full bg-gradient-to-tr from-amber-500 to-indigo-600 opacity-25 blur-xl pointer-events-none ${isTalking ? 'animate-ping' : ''}`}></div>
+          <AnimatedEngineerAvatar size="card" language={language} className={isTalking ? 'scale-110 transition-transform duration-300' : 'scale-100 transition-transform duration-300'} />
+          <div className="mt-2 text-[11px] text-amber-300 font-bold flex items-center gap-1.5">
+            <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />
+            <span>{isTalking ? (isAr ? 'المهندس يتحدث معك الآن...' : 'Engineer is speaking...') : (isAr ? 'المهندس يستمع ويدون ملاحظاتك...' : 'Listening & documenting...')}</span>
           </div>
         </div>
 
