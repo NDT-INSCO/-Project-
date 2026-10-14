@@ -90,3 +90,101 @@ export interface FAQItem {
   frequencyBadge?: { ar: string; en: string };
   tags: string[];
 }
+
+export type UserRole = 'manager' | 'supervisor' | 'client' | 'worker';
+
+export interface UserProfile {
+  userId: string;
+  email: string;
+  displayName: string;
+  photoUrl?: string;
+  role: UserRole;
+  company?: string;
+  phone?: string;
+  department?: string;
+  status: 'active' | 'suspended';
+  createdAt: string;
+}
+
+export interface ClientProfile {
+  clientId: string;
+  companyName: string;
+  commercialRegister: string;
+  taxNumber?: string;
+  industrySector: string;
+  contactPerson: string;
+  phone: string;
+  email: string;
+  headquarters: string;
+  assignedSupervisorId?: string;
+  status: 'verified' | 'pending' | 'inactive';
+  creditLimit?: string;
+  createdAt: string;
+}
+
+export type WorkOrderStatus =
+  | 'submitted'
+  | 'approved'
+  | 'technicians_dispatched'
+  | 'in_progress'
+  | 'testing_completed'
+  | 'closed';
+
+export interface WorkOrder {
+  orderId: string;
+  title: string;
+  clientId: string;
+  clientName: string;
+  serviceType: string; // e.g., 'PWHT', 'PAUT', 'RT', 'MT/PT', 'Welders Supply'
+  siteName: string;
+  governorate: string;
+  latitude: number;
+  longitude: number;
+  scopeDescription: string;
+  jointsCount: number;
+  equipmentAssigned: string;
+  assignedSupervisorId: string;
+  assignedWorkerIds: string[];
+  targetCompletionDate: string;
+  priority: 'normal' | 'urgent' | 'emergency';
+  status: WorkOrderStatus;
+  createdAt: string;
+}
+
+export type WorkerPresenceStatus =
+  | 'on_site'
+  | 'active_testing'
+  | 'heat_soaking'
+  | 'traveling'
+  | 'off_duty';
+
+export interface WorkerCheckIn {
+  checkInId: string;
+  workerId: string;
+  workerName: string;
+  craft: string; // e.g., 'Level II UT Inspector', 'PWHT Senior Technician', 'Certified Pipe Welder'
+  siteName: string;
+  orderId?: string;
+  latitude: number;
+  longitude: number;
+  status: WorkerPresenceStatus;
+  checkInTime: string;
+  lastPing: string;
+  notes?: string;
+}
+
+export interface DailyFieldReport {
+  reportId: string;
+  orderId: string;
+  workerId: string;
+  workerName: string;
+  date: string;
+  serviceMethod: string;
+  weldsCompleted: number;
+  hoursWorked: number;
+  temperatureMax?: number;
+  supervisorSignOff?: string;
+  status: 'draft' | 'submitted' | 'approved';
+  notes: string;
+  createdAt: string;
+}

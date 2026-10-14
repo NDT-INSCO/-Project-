@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Activity, Phone, MessageSquare, BookOpen, Send, Menu, X, Globe, Award, Briefcase, LogIn, LogOut, User, HelpCircle } from 'lucide-react';
+import { Shield, Activity, Phone, MessageSquare, BookOpen, Send, Menu, X, Globe, Award, Briefcase, LogIn, LogOut, User, HelpCircle, UserCheck, Home, ArrowRight, ArrowLeft } from 'lucide-react';
 import { Language } from '../types';
 import { COMPANY_DETAILS } from '../data/inscoData';
 import { useAuth } from '../context/AuthContext';
@@ -10,6 +10,7 @@ interface NavbarProps {
   language: Language;
   setLanguage: (lang: Language) => void;
   onOpenMessenger: () => void;
+  onOpenLoginModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -17,14 +18,16 @@ export const Navbar: React.FC<NavbarProps> = ({
   setCurrentTab,
   language,
   setLanguage,
-  onOpenMessenger
+  onOpenMessenger,
+  onOpenLoginModal
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isAr = language === 'ar';
-  const { user, signInWithGoogle, signOut } = useAuth();
+  const { user, userProfile, currentRole, signOut } = useAuth();
 
   const navItems = [
-    { id: 'overview', labelAr: 'عن إنسكو', labelEn: 'About INSCO', icon: Shield },
+    { id: 'overview', labelAr: 'الرئيسية (الصفحة الأولى)', labelEn: 'Home (First Page)', icon: Home },
+    { id: 'operations', labelAr: 'بوابة العمليات والتراتبيات', labelEn: 'Operations & RBAC', icon: UserCheck, highlight: true },
     { id: 'services', labelAr: 'الخدمات والأسطول', labelEn: 'Services & Fleet', icon: Activity },
     { id: 'projects', labelAr: 'سجل المشاريع', labelEn: 'Track Record', icon: Briefcase },
     { id: 'accreditations', labelAr: 'الاعتمادات والآيزو', labelEn: 'Accreditations', icon: Award },
@@ -76,8 +79,13 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="flex items-center justify-between h-20">
           {/* Logo brand */}
           <button
-            onClick={() => { setCurrentTab('overview'); setMobileMenuOpen(false); }}
+            onClick={() => {
+              setCurrentTab('overview');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              setMobileMenuOpen(false);
+            }}
             className="flex items-center gap-3.5 text-left rtl:text-right group cursor-pointer"
+            title={isAr ? 'العودة إلى الصفحة الأولى (الرئيسية)' : 'Back to Home (First Page)'}
           >
             {/* INSCO Shield Emblem */}
             <div className="relative w-12 h-14 bg-gradient-to-b from-[#1e1b4b] to-[#111227] border-2 border-amber-400/80 rounded-b-xl flex items-center justify-center shadow-lg shadow-amber-500/10 group-hover:border-amber-300 transition">
@@ -111,7 +119,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               return (
                 <button
                   key={item.id}
-                  onClick={() => setCurrentTab(item.id)}
+                  onClick={() => {
+                    setCurrentTab(item.id);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition cursor-pointer ${
                     isActive
                       ? 'bg-amber-500 text-slate-950 font-bold shadow-lg shadow-amber-500/20'
@@ -129,33 +140,48 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Action CTAs */}
           <div className="hidden sm:flex items-center gap-2.5">
-            {user ? (
-              <div className="flex items-center gap-2 bg-[#141838] px-3 py-1.5 rounded-xl border border-amber-500/30">
-                {user.photoURL ? (
-                  <img src={user.photoURL} alt={user.displayName || 'User'} className="w-6 h-6 rounded-full" />
-                ) : (
-                  <User className="w-4 h-4 text-amber-400" />
-                )}
-                <span className="text-xs text-white font-medium max-w-[100px] truncate">
-                  {user.displayName?.split(' ')[0] || user.email?.split('@')[0]}
-                </span>
-                <button
-                  onClick={() => signOut()}
-                  className="text-slate-400 hover:text-rose-400 p-1 transition cursor-pointer"
-                  title={isAr ? 'تسجيل الخروج' : 'Sign out'}
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            ) : (
+            {/* Quick Home Return Button when on inner pages */}
+            {currentTab !== 'overview' && (
               <button
-                onClick={() => signInWithGoogle()}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#141838] hover:bg-[#1d224d] text-slate-200 border border-[#232958] text-xs font-semibold transition cursor-pointer"
+                onClick={() => {
+                  setCurrentTab('overview');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs shadow-md shadow-amber-500/25 transition transform hover:scale-105 active:scale-95 cursor-pointer"
+                title={isAr ? 'العودة المباشرة إلى الصفحة الأولى' : 'Return directly to First Page'}
               >
-                <LogIn className="w-3.5 h-3.5 text-amber-400" />
-                <span>{isAr ? 'تسجيل الدخول' : 'Sign In'}</span>
+                <Home className="w-3.5 h-3.5 text-slate-950" />
+                <span>{isAr ? 'العودة للرئيسية' : 'Home'}</span>
               </button>
             )}
+
+            {/* Unified Login & Role Badge Trigger */}
+            <button
+              onClick={() => {
+                if (onOpenLoginModal) onOpenLoginModal();
+              }}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#14193d] hover:bg-[#1b2252] border border-amber-400/40 text-xs transition cursor-pointer shadow-md group"
+              title={isAr ? 'منظومة الدخول وتوزيع الصلاحيات' : 'Unified Login & Role Switcher'}
+            >
+              <div className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+                {currentRole === 'manager' && '👑'}
+                {currentRole === 'supervisor' && '📋'}
+                {currentRole === 'client' && '🏢'}
+                {currentRole === 'worker' && '👷'}
+              </div>
+              <div className="text-start leading-tight">
+                <span className="block text-[10px] text-amber-400 font-bold uppercase tracking-wider">
+                  {currentRole === 'manager' && (isAr ? 'المدير العام' : 'Manager')}
+                  {currentRole === 'supervisor' && (isAr ? 'مشرف التشغيل' : 'Supervisor')}
+                  {currentRole === 'client' && (isAr ? 'بوابة العميل' : 'Client')}
+                  {currentRole === 'worker' && (isAr ? 'فني الميدان' : 'Worker')}
+                </span>
+                <span className="block text-[11px] text-slate-200 font-medium max-w-[110px] truncate">
+                  {userProfile?.displayName?.split(' ')[0] || (isAr ? 'تسجيل الدخول' : 'Login')}
+                </span>
+              </div>
+              <LogIn className="w-3.5 h-3.5 text-amber-400 group-hover:translate-x-0.5 rtl:group-hover:-translate-x-0.5 transition" />
+            </button>
 
             <button
               onClick={onOpenMessenger}
@@ -168,6 +194,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Mobile hamburger */}
           <div className="lg:hidden flex items-center gap-2">
+            {currentTab !== 'overview' && (
+              <button
+                onClick={() => {
+                  setCurrentTab('overview');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black text-xs"
+              >
+                <Home className="w-3.5 h-3.5" />
+                <span>{isAr ? 'الرئيسية' : 'Home'}</span>
+              </button>
+            )}
+
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg bg-[#191d3b] text-slate-300 hover:text-white focus:outline-none"
@@ -182,6 +221,21 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#0c0e1f] border-b border-[#23274e] px-4 pt-2 pb-6 space-y-2">
+          {/* Direct Return button in mobile menu */}
+          {currentTab !== 'overview' && (
+            <button
+              onClick={() => {
+                setCurrentTab('overview');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setMobileMenuOpen(false);
+              }}
+              className="w-full flex items-center justify-center gap-2 p-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-sm mb-2 shadow-lg cursor-pointer"
+            >
+              <Home className="w-4 h-4 text-slate-950" />
+              <span>{isAr ? 'العودة إلى الصفحة الأولى (الرئيسية)' : 'Back to Home / First Page'}</span>
+            </button>
+          )}
+
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentTab === item.id;
@@ -190,9 +244,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 key={item.id}
                 onClick={() => {
                   setCurrentTab(item.id);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                   setMobileMenuOpen(false);
                 }}
-                className={`w-full flex items-center justify-between p-3 rounded-lg text-sm font-medium transition ${
+                className={`w-full flex items-center justify-between p-3 rounded-lg text-sm font-medium transition cursor-pointer ${
                   isActive
                     ? 'bg-amber-500 text-slate-950 font-bold'
                     : 'text-slate-200 hover:bg-[#181d3f]'

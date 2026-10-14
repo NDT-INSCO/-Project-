@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Activity, ArrowRight, ArrowLeft, CheckCircle2, Flame, Bot, Send, BookOpen, Download, FileText, HelpCircle } from 'lucide-react';
+import { Shield, Activity, ArrowRight, ArrowLeft, CheckCircle2, Flame, Bot, Send, BookOpen, Download, FileText, HelpCircle, UserCheck } from 'lucide-react';
 import { Language } from '../types';
 import { COMPANY_DETAILS, QUICK_STATS } from '../data/inscoData';
 
@@ -141,6 +141,14 @@ export const Hero: React.FC<HeroProps> = ({ language, onNavigate, onOpenMessenge
               >
                 <BookOpen className="w-5 h-5 text-sky-400" />
                 <span>{isAr ? 'الأكاديمية التعليمية' : 'NDT Academy'}</span>
+              </button>
+
+              <button
+                onClick={() => onNavigate('operations')}
+                className="flex items-center gap-2 px-4 py-3.5 rounded-xl bg-gradient-to-r from-[#1c2459] to-[#12173d] hover:from-[#253075] hover:to-[#171f54] text-amber-300 border border-amber-400/40 font-bold text-sm sm:text-base transition cursor-pointer shadow-lg"
+              >
+                <UserCheck className="w-5 h-5 text-amber-400" />
+                <span>{isAr ? 'بوابة العمليات والتراتبيات' : 'Operations & RBAC'}</span>
               </button>
 
               <button

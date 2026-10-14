@@ -28,55 +28,52 @@ service cloud.firestore {
       return resource.data;
     }
 
-    // Validation for User Profile
-    function isValidUserProfile(data) {
-      return data.keys().hasAll(['userId', 'email'])
-        && data.userId is string && data.userId.size() <= 128
-        && data.email is string && data.email.size() <= 256
-        && data.userId == request.auth.uid;
-    }
-
-    // Validation for Service Request / RFQ
-    function isValidServiceRequest(data) {
-      return data.keys().hasAll(['requestId', 'userId', 'serviceType', 'location'])
-        && data.requestId is string && data.requestId.size() <= 128
-        && data.userId is string && data.userId.size() <= 128
-        && data.serviceType is string && data.serviceType.size() <= 64
-        && data.location is string && data.location.size() <= 128
-        && data.userId == request.auth.uid;
-    }
-
-    // Validation for Technical Inquiry
-    function isValidInquiry(data) {
-      return data.keys().hasAll(['inquiryId', 'userId', 'userQuestion'])
-        && data.inquiryId is string && data.inquiryId.size() <= 128
-        && data.userId is string && data.userId.size() <= 128
-        && data.userQuestion is string && data.userQuestion.size() <= 2048
-        && data.userId == request.auth.uid;
-    }
-
     // Users Collection
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming());
-      allow update: if isOwner(userId) && isValidUserProfile(incoming());
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId);
     }
 
-    // Service Requests & RFQ Bookings
+    // Clients Collection (تسجيل بيانات العملاء)
+    match /clients/{clientId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(clientId);
+      allow delete: if isSignedIn();
+    }
+
+    // Work Orders (طلبات العمل)
+    match /workOrders/{orderId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(orderId);
+      allow delete: if isSignedIn();
+    }
+
+    // Worker Location & Shift Tracking (هيكل تتبع العاملين وأماكن تواجدهم)
+    match /workerCheckIns/{checkInId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(checkInId);
+      allow delete: if isSignedIn();
+    }
+
+    // Daily Field Reports
+    match /fieldReports/{reportId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(reportId);
+      allow delete: if isSignedIn();
+    }
+
+    // Service Requests & RFQs
     match /serviceRequests/{requestId} {
-      allow get: if isSignedIn() && (existing().userId == request.auth.uid);
-      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid);
-      allow create: if isSignedIn() && isValidId(requestId) && isValidServiceRequest(incoming());
-      allow update: if isSignedIn() && (existing().userId == request.auth.uid) && isValidServiceRequest(incoming());
-      allow delete: if isSignedIn() && (existing().userId == request.auth.uid);
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(requestId);
+      allow delete: if isSignedIn();
     }
 
     // Inquiries Collection
     match /inquiries/{inquiryId} {
-      allow get: if isSignedIn() && (existing().userId == request.auth.uid);
-      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid);
-      allow create: if isSignedIn() && isValidId(inquiryId) && isValidInquiry(incoming());
-      allow delete: if isSignedIn() && (existing().userId == request.auth.uid);
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isValidId(inquiryId);
+      allow delete: if isSignedIn();
     }
 
     // Test connection doc for validating setup
