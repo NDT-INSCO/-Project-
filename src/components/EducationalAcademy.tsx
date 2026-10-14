@@ -186,38 +186,163 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
           </p>
         </div>
 
-        {/* Sub-Navigation Tabs */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
-          {[
-            { id: 'curriculum', labelAr: 'المناهج والمسارات المهنية الشاملة (8 مجالات)', labelEn: 'All Disciplines & Roadmaps', icon: GraduationCap, highlight: true },
-            { id: 'workshops', labelAr: 'ورش العمل والمعامل التفاعلية (6 مختبرات)', labelEn: 'Interactive Workbenches', icon: Wrench, highlight: true },
-            { id: 'defects', labelAr: 'محاكي عيوب اللحام (Defect Simulator)', labelEn: 'Defect Simulator', icon: Activity },
-            { id: 'pwht_curve', labelAr: 'محاكي منحنيات PWHT الحرارية', labelEn: 'PWHT Thermal Curve', icon: Flame },
-            { id: 'methods', labelAr: 'دليل تقنيات الفحص الـ 12', labelEn: '12 NDT Methods Guide', icon: Layers },
-            { id: 'standards', labelAr: 'مكتبة الأكواد (ASME / API / AWS)', labelEn: 'Standards Library', icon: FileText },
-            { id: 'quiz', labelAr: 'اختبار المعرفة وتأهيل ASNT', labelEn: 'Knowledge Quiz', icon: HelpCircle },
-            { id: 'video_gen', labelAr: 'توليد فيديو المحاكاة (Veo 3)', labelEn: 'Veo Video Generator', icon: Film },
-            { id: 'ask_ai', labelAr: 'اسأل المستشار الأكاديمي الذكي', labelEn: 'Ask AI Professor', icon: Sparkles },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isCurrent = activeSubTab === tab.id;
-            return (
+        {/* Unified Practical Category Hubs (Prevents multi-line wrapping & page displacement) */}
+        <div className="space-y-4 mb-8">
+          {/* Main 4 Unified Functional Hubs */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-[#0c0e22] p-1.5 rounded-2xl border-2 border-[#202755] shadow-xl max-w-5xl mx-auto">
+            {/* Hub 1: Comprehensive Curricula */}
+            <button
+              onClick={() => setActiveSubTab('curriculum')}
+              className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                activeSubTab === 'curriculum'
+                  ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.01]'
+                  : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'
+              }`}
+            >
+              <GraduationCap className={`w-4 h-4 ${activeSubTab === 'curriculum' ? 'text-slate-950' : 'text-amber-400'}`} />
+              <span className="truncate">{isAr ? 'المناهج والمسارات (8 مجالات)' : 'Curricula (8 Disciplines)'}</span>
+            </button>
+
+            {/* Hub 2: Hands-on Interactive Workbenches */}
+            <button
+              onClick={() => setActiveSubTab('workshops')}
+              className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                activeSubTab === 'workshops'
+                  ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.01]'
+                  : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'
+              }`}
+            >
+              <Wrench className={`w-4 h-4 ${activeSubTab === 'workshops' ? 'text-slate-950' : 'text-emerald-400'}`} />
+              <span className="truncate">{isAr ? 'معامل الورش الحية (6 مختبرات)' : 'Interactive Labs (6)'}</span>
+            </button>
+
+            {/* Hub 3: Thermal & Defect Simulators */}
+            <button
+              onClick={() => {
+                if (activeSubTab !== 'defects' && activeSubTab !== 'pwht_curve') {
+                  setActiveSubTab('defects');
+                }
+              }}
+              className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                activeSubTab === 'defects' || activeSubTab === 'pwht_curve'
+                  ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.01]'
+                  : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'
+              }`}
+            >
+              <Activity className={`w-4 h-4 ${activeSubTab === 'defects' || activeSubTab === 'pwht_curve' ? 'text-slate-950' : 'text-amber-400'}`} />
+              <span className="truncate">{isAr ? 'محاكيات اللحام و PWHT' : 'Defect & PWHT Sim'}</span>
+            </button>
+
+            {/* Hub 4: Codes, Methods & AI Professor */}
+            <button
+              onClick={() => {
+                if (!['standards', 'methods', 'quiz', 'ask_ai', 'video_gen'].includes(activeSubTab)) {
+                  setActiveSubTab('standards');
+                }
+              }}
+              className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                ['standards', 'methods', 'quiz', 'ask_ai', 'video_gen'].includes(activeSubTab)
+                  ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.01]'
+                  : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'
+              }`}
+            >
+              <Sparkles className={`w-4 h-4 ${['standards', 'methods', 'quiz', 'ask_ai', 'video_gen'].includes(activeSubTab) ? 'text-slate-950' : 'text-sky-400'}`} />
+              <span className="truncate">{isAr ? 'الأكواد والمستشار الذكي' : 'Codes & AI Professor'}</span>
+            </button>
+          </div>
+
+          {/* Child Sub-Segment Pills for Hub 3: Simulators */}
+          {(activeSubTab === 'defects' || activeSubTab === 'pwht_curve') && (
+            <div className="flex items-center justify-center gap-2 animate-fadeIn">
               <button
-                key={tab.id}
-                onClick={() => setActiveSubTab(tab.id as any)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                  isCurrent
-                    ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20 scale-[1.02]'
-                    : tab.highlight
-                    ? 'bg-[#151940] text-amber-300 hover:text-white hover:bg-[#1f2558] border border-amber-500/40 ring-1 ring-amber-500/20'
-                    : 'bg-[#121535] text-slate-300 hover:text-white hover:bg-[#1a1f48] border border-[#232958]'
+                onClick={() => setActiveSubTab('defects')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'defects'
+                    ? 'bg-[#1e2554] text-amber-300 border border-amber-400/50 shadow-md'
+                    : 'bg-[#10132b] text-slate-400 hover:text-slate-200 border border-transparent'
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isCurrent ? 'text-slate-950' : 'text-amber-400'}`} />
-                <span>{isAr ? tab.labelAr : tab.labelEn}</span>
+                <Activity className="w-3.5 h-3.5 text-amber-400" />
+                <span>{isAr ? 'محاكي عيوب اللحام (Defect Simulator)' : 'Weld Defect Simulator'}</span>
               </button>
-            );
-          })}
+              <button
+                onClick={() => setActiveSubTab('pwht_curve')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'pwht_curve'
+                    ? 'bg-[#1e2554] text-amber-300 border border-amber-400/50 shadow-md'
+                    : 'bg-[#10132b] text-slate-400 hover:text-slate-200 border border-transparent'
+                }`}
+              >
+                <Flame className="w-3.5 h-3.5 text-orange-400" />
+                <span>{isAr ? 'محاكي منحنيات PWHT الحرارية' : 'PWHT Thermal Curve'}</span>
+              </button>
+            </div>
+          )}
+
+          {/* Child Sub-Segment Pills for Hub 4: Knowledge & AI */}
+          {['standards', 'methods', 'quiz', 'ask_ai', 'video_gen'].includes(activeSubTab) && (
+            <div className="flex flex-wrap items-center justify-center gap-1.5 animate-fadeIn max-w-4xl mx-auto">
+              <button
+                onClick={() => setActiveSubTab('standards')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'standards'
+                    ? 'bg-[#1e2554] text-amber-300 border border-amber-400/50 shadow-md'
+                    : 'bg-[#10132b] text-slate-400 hover:text-slate-200 border border-transparent'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5 text-amber-400" />
+                <span>{isAr ? 'مكتبة الأكواد (ASME / API / AWS)' : 'Standards Library'}</span>
+              </button>
+
+              <button
+                onClick={() => setActiveSubTab('methods')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'methods'
+                    ? 'bg-[#1e2554] text-amber-300 border border-amber-400/50 shadow-md'
+                    : 'bg-[#10132b] text-slate-400 hover:text-slate-200 border border-transparent'
+                }`}
+              >
+                <Layers className="w-3.5 h-3.5 text-sky-400" />
+                <span>{isAr ? 'دليل الـ 12 تقنية فحص' : '12 NDT Methods Guide'}</span>
+              </button>
+
+              <button
+                onClick={() => setActiveSubTab('quiz')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'quiz'
+                    ? 'bg-[#1e2554] text-amber-300 border border-amber-400/50 shadow-md'
+                    : 'bg-[#10132b] text-slate-400 hover:text-slate-200 border border-transparent'
+                }`}
+              >
+                <HelpCircle className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{isAr ? 'اختبار المعرفة وتأهيل ASNT' : 'ASNT Quiz'}</span>
+              </button>
+
+              <button
+                onClick={() => setActiveSubTab('ask_ai')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'ask_ai'
+                    ? 'bg-[#1e2554] text-amber-300 border border-amber-400/50 shadow-md'
+                    : 'bg-[#10132b] text-slate-400 hover:text-slate-200 border border-transparent'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>{isAr ? 'اسأل المستشار الأكاديمي' : 'Ask Professor AI'}</span>
+              </button>
+
+              <button
+                onClick={() => setActiveSubTab('video_gen')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'video_gen'
+                    ? 'bg-[#1e2554] text-amber-300 border border-amber-400/50 shadow-md'
+                    : 'bg-[#10132b] text-slate-400 hover:text-slate-200 border border-transparent'
+                }`}
+              >
+                <Film className="w-3.5 h-3.5 text-purple-400" />
+                <span>{isAr ? 'توليد فيديو المحاكاة' : 'Veo Simulation'}</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Sub-Tab 0A: All Disciplines & Career Roadmaps Curriculum */}

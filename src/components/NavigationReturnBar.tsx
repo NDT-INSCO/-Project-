@@ -78,7 +78,7 @@ export const NavigationReturnBar: React.FC<NavigationReturnBarProps> = ({
   return (
     <nav
       aria-label="Navigation breadcrumb & return"
-      className="sticky top-20 z-40 bg-[#0d1026]/95 backdrop-blur-md border-b-2 border-amber-500/30 shadow-lg px-4 sm:px-6 py-2.5 transition-all"
+      className="sticky top-18 sm:top-20 z-40 bg-[#0d1026]/95 backdrop-blur-md border-b-2 border-amber-500/30 shadow-lg px-3 sm:px-6 py-2.5 transition-all w-full max-w-full overflow-hidden"
     >
       <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
         {/* Left / Start: Direct Return Controls */}

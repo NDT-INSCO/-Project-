@@ -116,46 +116,52 @@ export const Hero: React.FC<HeroProps> = ({ language, onNavigate, onOpenMessenge
               ))}
             </div>
 
-            {/* Interactive Hero CTAs */}
+            {/* Unified Practical Action Pods (Contained strictly within page bounds) */}
             <div className="flex flex-wrap items-center gap-3 pt-4">
-              <button
-                onClick={onOpenMessenger}
-                className="flex items-center gap-2.5 px-6 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-sm sm:text-base shadow-xl shadow-amber-500/25 transition transform hover:-translate-y-0.5 cursor-pointer"
-              >
-                <Send className="w-5 h-5" />
-                <span>{isAr ? 'ماسنجر طلب الخدمات و RFQ' : 'Service Messenger & RFQ'}</span>
-                <Arrow className="w-4 h-4" />
-              </button>
+              {/* Merged Pod 1: Instant RFQ & Smart AI Platform */}
+              <div className="inline-flex items-center p-1 rounded-2xl bg-[#14193d]/90 border border-amber-500/40 shadow-xl max-w-full">
+                <button
+                  onClick={onOpenMessenger}
+                  className="flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs sm:text-sm shadow-md transition transform active:scale-95 cursor-pointer whitespace-nowrap"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>{isAr ? 'طلب عرض سعر RFQ' : 'Request RFQ'}</span>
+                  <Arrow className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => onNavigate('ai-platform')}
+                  className="flex items-center gap-1.5 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-amber-300 hover:text-white hover:bg-[#1f265c] text-xs sm:text-sm font-bold transition cursor-pointer whitespace-nowrap"
+                  title={isAr ? 'منصة الرد الذكية على العملاء' : 'AI Client Platform'}
+                >
+                  <Bot className="w-4 h-4 text-amber-400" />
+                  <span>{isAr ? 'المنصة الذكية' : 'AI Platform'}</span>
+                </button>
+              </div>
 
-              <button
-                onClick={() => onNavigate('ai-platform')}
-                className="flex items-center gap-2 px-5 py-3.5 rounded-xl bg-[#1d224d] hover:bg-[#252b61] text-amber-300 hover:text-white border border-amber-500/30 font-bold text-sm sm:text-base transition cursor-pointer"
-              >
-                <Bot className="w-5 h-5 text-amber-400" />
-                <span>{isAr ? 'منصة الرد الذكية على العملاء' : 'AI Client Platform'}</span>
-              </button>
+              {/* Merged Pod 2: Field Operations & Technical Academy */}
+              <div className="inline-flex items-center p-1 rounded-2xl bg-[#121636]/90 border border-[#2b356f] shadow-xl max-w-full">
+                <button
+                  onClick={() => onNavigate('operations')}
+                  className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl bg-[#1d2558] hover:bg-[#253075] text-amber-300 font-bold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap"
+                >
+                  <UserCheck className="w-4 h-4 text-amber-400" />
+                  <span>{isAr ? 'بوابة العمليات' : 'Operations'}</span>
+                </button>
+                <button
+                  onClick={() => onNavigate('academy')}
+                  className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-xl text-slate-200 hover:text-white hover:bg-[#1a2046] font-semibold text-xs sm:text-sm transition cursor-pointer whitespace-nowrap"
+                >
+                  <BookOpen className="w-4 h-4 text-emerald-400" />
+                  <span>{isAr ? 'الأكاديمية والورش' : 'NDT Academy'}</span>
+                </button>
+              </div>
 
-              <button
-                onClick={() => onNavigate('academy')}
-                className="flex items-center gap-2 px-5 py-3.5 rounded-xl bg-[#141836] hover:bg-[#1a2046] text-slate-200 border border-slate-700 font-semibold text-sm sm:text-base transition cursor-pointer"
-              >
-                <BookOpen className="w-5 h-5 text-sky-400" />
-                <span>{isAr ? 'الأكاديمية التعليمية' : 'NDT Academy'}</span>
-              </button>
-
-              <button
-                onClick={() => onNavigate('operations')}
-                className="flex items-center gap-2 px-4 py-3.5 rounded-xl bg-gradient-to-r from-[#1c2459] to-[#12173d] hover:from-[#253075] hover:to-[#171f54] text-amber-300 border border-amber-400/40 font-bold text-sm sm:text-base transition cursor-pointer shadow-lg"
-              >
-                <UserCheck className="w-5 h-5 text-amber-400" />
-                <span>{isAr ? 'بوابة العمليات والتراتبيات' : 'Operations & RBAC'}</span>
-              </button>
-
+              {/* Quick FAQs link */}
               <button
                 onClick={() => onNavigate('faqs')}
-                className="flex items-center gap-2 px-4 py-3.5 rounded-xl bg-[#141836] hover:bg-[#1b2149] text-amber-300 border border-amber-500/30 hover:border-amber-400 font-semibold text-sm sm:text-base transition cursor-pointer"
+                className="flex items-center gap-1.5 px-3.5 py-2.5 sm:py-3 rounded-xl text-slate-400 hover:text-amber-300 hover:bg-[#161a38] text-xs sm:text-sm font-medium transition cursor-pointer whitespace-nowrap"
               >
-                <HelpCircle className="w-5 h-5 text-amber-400" />
+                <HelpCircle className="w-4 h-4 text-amber-400/80" />
                 <span>{isAr ? 'الأسئلة الشائعة' : 'FAQs'}</span>
               </button>
             </div>

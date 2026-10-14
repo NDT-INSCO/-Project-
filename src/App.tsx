@@ -11,10 +11,10 @@ import { ServiceMessenger } from './components/ServiceMessenger';
 import { EducationalAcademy } from './components/EducationalAcademy';
 import { FAQs } from './components/FAQs';
 import { OperationsPortal } from './components/OperationsPortal';
-import { UnifiedLoginModal } from './components/UnifiedLoginModal';
 import { NavigationReturnBar } from './components/NavigationReturnBar';
 import { Footer } from './components/Footer';
-import { Send, Bot, UserCheck, Home, ArrowRight, ArrowLeft } from 'lucide-react';
+import { UnifiedLoginModal } from './components/UnifiedLoginModal';
+import { UnifiedQuickDock } from './components/UnifiedQuickDock';
 import { useAuth } from './context/AuthContext';
 
 const VALID_TABS = [
@@ -30,7 +30,24 @@ const VALID_TABS = [
 ];
 
 export default function App() {
-  const [language, setLanguage] = useState<Language>('ar');
+  const [language, setLanguageState] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('insco_preferred_lang');
+      if (saved === 'ar' || saved === 'en') {
+        return saved;
+      }
+    }
+    // Default entry gate is English as requested by user
+    return 'en';
+  });
+
+  const setLanguage = useCallback((lang: Language) => {
+    setLanguageState(lang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('insco_preferred_lang', lang);
+    }
+  }, []);
+
   const [currentTab, setCurrentTab] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       const hash = window.location.hash.replace('#', '');
@@ -121,7 +138,7 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen bg-[#090a16] text-slate-100 ${isAr ? 'font-sans' : 'font-sans'}`}>
+    <div className={`min-h-screen w-full max-w-full overflow-x-hidden relative bg-[#090a16] text-slate-100 ${isAr ? 'font-sans' : 'font-sans'}`}>
       {/* Sticky Top Navigation */}
       <Navbar
         currentTab={currentTab}
@@ -244,58 +261,15 @@ export default function App() {
         )}
       </main>
 
-      {/* Floating Action Button for Instant Navigation & Quick Actions */}
-      <aside aria-label="Customer quick actions" className="fixed bottom-6 start-6 z-40 flex flex-col gap-3">
-        {/* Instant 1-Click Return to First Page Floating Button */}
-        {currentTab !== 'overview' && (
-          <button
-            onClick={() => navigateToTab('overview')}
-            className="flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black shadow-2xl transition transform hover:scale-105 active:scale-95 cursor-pointer text-xs sm:text-sm border-2 border-amber-300 ring-4 ring-amber-500/20"
-            title={isAr ? 'العودة الفورية إلى الصفحة الأولى (الرئيسية)' : 'Immediate Return to Home / First Page'}
-          >
-            <Home className="w-5 h-5 text-slate-950" />
-            <span>{isAr ? 'العودة للصفحة الأولى' : 'Back to Home'}</span>
-          </button>
-        )}
-
-        {currentTab !== 'operations' && (
-          <button
-            onClick={() => navigateToTab('operations')}
-            className="flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-[#182054] to-[#11173f] hover:from-[#212c75] hover:to-[#171f54] text-amber-300 border-2 border-amber-400 shadow-2xl transition transform hover:scale-105 cursor-pointer text-xs sm:text-sm font-bold"
-            title={isAr ? 'بوابة العمليات والتراتبيات' : 'Open Operations Portal'}
-          >
-            <UserCheck className="w-5 h-5 text-amber-400 animate-pulse" />
-            <span className="hidden sm:inline">
-              {currentRole === 'manager' && (isAr ? 'بوابة المدير' : 'Manager')}
-              {currentRole === 'supervisor' && (isAr ? 'بوابة المشرف' : 'Supervisor')}
-              {currentRole === 'client' && (isAr ? 'بوابة العميل' : 'Client')}
-              {currentRole === 'worker' && (isAr ? 'منفذ العامل' : 'Worker')}
-            </span>
-          </button>
-        )}
-
-        {currentTab !== 'ai-platform' && (
-          <button
-            onClick={() => navigateToTab('ai-platform')}
-            className="flex items-center gap-2 px-4 py-3 rounded-full bg-[#1b204e] hover:bg-[#252c6a] text-amber-300 border-2 border-amber-400 shadow-xl transition transform hover:scale-105 cursor-pointer text-xs sm:text-sm font-bold"
-            title={isAr ? 'فتح منصة الرد الذكية' : 'Open AI Client Platform'}
-          >
-            <Bot className="w-5 h-5 text-amber-400 animate-pulse" />
-            <span className="hidden sm:inline">{isAr ? 'منصة الرد الذكية' : 'AI Platform'}</span>
-          </button>
-        )}
-
-        {currentTab !== 'messenger' && (
-          <button
-            onClick={() => handleOpenMessenger()}
-            className="flex items-center gap-2 px-4 py-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black shadow-2xl transition transform hover:scale-105 cursor-pointer text-xs sm:text-sm"
-            title={isAr ? 'فتح ماسنجر الخدمات' : 'Open Service Messenger'}
-          >
-            <Send className="w-4 h-4" />
-            <span className="hidden sm:inline">{isAr ? 'ماسنجر الخدمات' : 'Service Messenger'}</span>
-          </button>
-        )}
-      </aside>
+      {/* Unified Practical Control & Operations Floating Dock (strictly bounded inside page) */}
+      <UnifiedQuickDock
+        currentTab={currentTab}
+        onNavigateTab={(tab) => navigateToTab(tab)}
+        onOpenMessenger={() => handleOpenMessenger()}
+        language={language}
+        onLanguageChange={setLanguage}
+        currentRole={currentRole}
+      />
 
       {/* Official Footer */}
       <Footer

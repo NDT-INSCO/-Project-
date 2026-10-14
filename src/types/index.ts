@@ -95,7 +95,7 @@ export interface FAQItem {
   tags: string[];
 }
 
-export type UserRole = 'manager' | 'supervisor' | 'client' | 'worker';
+export type UserRole = 'manager' | 'supervisor' | 'client' | 'worker' | 'guest';
 
 export interface UserProfile {
   userId: string;

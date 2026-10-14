@@ -134,6 +134,17 @@ const DEFAULT_PROFILES: Record<UserRole, UserProfile> = {
     department: 'طاقم العمليات الميدانية - وردية المواقع',
     status: 'active',
     createdAt: new Date().toISOString()
+  },
+  guest: {
+    userId: 'usr-guest-visitor',
+    email: 'guest.visitor@insco-ndt.com',
+    displayName: 'ضيف وزائر المنصة (Guest Explorer)',
+    role: 'guest',
+    company: 'تصفح واستكشاف مفتوح (Open Exploration)',
+    phone: 'متاح للجميع بدون قيود',
+    department: 'زائر حر / استكشاف خدمات ومعامل إنسكو',
+    status: 'active',
+    createdAt: new Date().toISOString()
   }
 };
 

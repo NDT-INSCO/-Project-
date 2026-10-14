@@ -30,7 +30,8 @@ import {
   Phone,
   Mail,
   UserCheck,
-  Home
+  Home,
+  Sparkles
 } from 'lucide-react';
 import {
   Language,
@@ -318,6 +319,7 @@ export const OperationsPortal: React.FC<OperationsPortalProps> = ({
               {currentRole === 'supervisor' && <Briefcase className="w-8 h-8 text-blue-400" />}
               {currentRole === 'client' && <Building2 className="w-8 h-8 text-emerald-400" />}
               {currentRole === 'worker' && <HardHat className="w-8 h-8 text-orange-400" />}
+              {currentRole === 'guest' && <Sparkles className="w-8 h-8 text-cyan-400" />}
             </div>
 
             <div>
@@ -327,6 +329,7 @@ export const OperationsPortal: React.FC<OperationsPortalProps> = ({
                   {currentRole === 'supervisor' && (isAr ? 'دائرة رؤية: المشرف الإداري' : 'Circle: Operations Supervisor')}
                   {currentRole === 'client' && (isAr ? 'دائرة رؤية: بوابة العميل' : 'Circle: Enterprise Client')}
                   {currentRole === 'worker' && (isAr ? 'دائرة رؤية: منفذ العامل الميداني' : 'Circle: Field Technician')}
+                  {currentRole === 'guest' && (isAr ? 'دائرة رؤية: زائر وضيف المنصة' : 'Circle: Guest Explorer')}
                 </span>
                 <span className="text-xs text-slate-400 font-mono">
                   ID: {userProfile?.userId}
@@ -398,6 +401,19 @@ export const OperationsPortal: React.FC<OperationsPortalProps> = ({
             >
               <HardHat className="w-3.5 h-3.5" />
               <span>{isAr ? 'العامل' : 'Worker'}</span>
+            </button>
+
+            <button
+              onClick={() => switchRole('guest')}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                currentRole === 'guest'
+                  ? 'bg-cyan-500 text-slate-950 shadow-md'
+                  : 'text-slate-300 hover:bg-[#1a2046]'
+              }`}
+              title={isAr ? 'تصفح واستكشاف حر كـ ضيف' : 'Guest'}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{isAr ? 'ضيف' : 'Guest'}</span>
             </button>
 
             {onOpenLoginModal && (
@@ -1210,6 +1226,213 @@ export const OperationsPortal: React.FC<OperationsPortalProps> = ({
                     <li>• {isAr ? 'فحص عزل وسادات السيراميك والتأكد من جهد 65V' : 'Check ceramic pad insulation (65V)'}</li>
                     <li>• {isAr ? 'الاحتفاظ بمخططات التسجيل الحراري الأصلية' : 'Maintain original thermal chart logs'}</li>
                   </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            ROLE CIRCLE 5: GUEST EXPLORER (ضيف وزائر المنصة) - Open Inspection & Overview
+           ========================================================================= */}
+        {currentRole === 'guest' && (
+          <div className="space-y-6">
+            {/* Guest Welcome & Action Hub Banner */}
+            <div className="bg-gradient-to-r from-cyan-950/60 via-[#101b3d] to-cyan-950/60 border-2 border-cyan-500/40 p-5 sm:p-6 rounded-3xl shadow-2xl space-y-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 flex-shrink-0 shadow-inner">
+                    <Sparkles className="w-6 h-6 animate-pulse" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h2 className="text-lg sm:text-xl font-black text-white">
+                        {isAr ? 'أهلاً بك كـ ضيف في المنصة التفاعلية لشركة إنسكو الدولية' : 'Welcome to INSCO Interactive Guest Portal'}
+                      </h2>
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-400/20 text-cyan-300 font-bold border border-cyan-400/40">
+                        {isAr ? 'تصفح مفتوح 100%' : 'Open Guest Access'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
+                      {isAr
+                        ? 'يمكنك كضيف استكشاف كافة إمكانيات المنصة: رادار انتشار الفنيين الميدانيين، نماذج أوامر العمل، الأسطول المملوك، كما يمكنك إضافة وتسجيل بياناتك أو طلب عرض أسعار فوري بنقرة واحدة.'
+                        : 'Explore all platform capabilities: live field presence radar, sample work orders, company-owned fleet, or add your project data & request an instant quote.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Quick Add / Action Buttons for Guest */}
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <button
+                    onClick={() => setShowWorkOrderForm(true)}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-xs transition cursor-pointer shadow-md flex items-center gap-1.5 active:scale-95"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>{isAr ? 'أضف أمر عمل تجريبي' : 'Add Work Order'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowClientForm(true)}
+                    className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition cursor-pointer shadow-md flex items-center gap-1.5 active:scale-95"
+                  >
+                    <Building2 className="w-4 h-4" />
+                    <span>{isAr ? 'أضف بيانات شركتك' : 'Register Company'}</span>
+                  </button>
+
+                  {onOpenMessenger && (
+                    <button
+                      onClick={() => onOpenMessenger()}
+                      className="px-4 py-2 rounded-xl bg-[#1b2554] hover:bg-[#253272] text-cyan-300 border border-cyan-400/40 font-bold text-xs transition cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{isAr ? 'طلب عرض أسعار RFQ' : 'Request RFQ'}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Guest Stat Indicators */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 border-t border-[#1e2c5e] text-xs">
+                <div className="p-2.5 rounded-xl bg-[#091024] border border-[#1b2552]">
+                  <span className="text-slate-400 block text-[11px]">{isAr ? 'الأسطول ووحدات PWHT:' : 'PWHT Units Fleet:'}</span>
+                  <strong className="text-amber-400 text-sm font-black">65 kW & 70 kVA</strong>
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#091024] border border-[#1b2552]">
+                  <span className="text-slate-400 block text-[11px]">{isAr ? 'تغطية المشاريع بمصر:' : 'Egypt Coverage:'}</span>
+                  <strong className="text-cyan-400 text-sm font-black">{isAr ? 'كافة المحافظات والحقول' : 'Nationwide 24/7'}</strong>
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#091024] border border-[#1b2552]">
+                  <span className="text-slate-400 block text-[11px]">{isAr ? 'تراخيص وهيئة الرقابة:' : 'Accreditations:'}</span>
+                  <strong className="text-emerald-400 text-sm font-black">ISO & ENRRA Licensed</strong>
+                </div>
+                <div className="p-2.5 rounded-xl bg-[#091024] border border-[#1b2552]">
+                  <span className="text-slate-400 block text-[11px]">{isAr ? 'المعامل التفاعلية:' : 'Virtual Labs:'}</span>
+                  <strong className="text-purple-400 text-sm font-black">6 Labs + 8 Curricula</strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Guest Interactive Grid: Radar & Sample Orders */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Radar Preview */}
+              <div className="lg:col-span-2 bg-[#101533] rounded-3xl border border-[#21295c] p-6 shadow-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                      <Radio className="w-5 h-5 animate-pulse" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-white flex items-center gap-2">
+                        <span>{isAr ? 'رادار الانتشار الميداني الحي (معاينة الضيف)' : 'Live Staff Radar (Guest Preview)'}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                          {isAr ? 'مباشر' : 'Live'}
+                        </span>
+                      </h3>
+                      <p className="text-xs text-slate-400">
+                        {isAr ? 'مواقع الفرق الفنية في حقول الغاز ومحطات الطاقة والموانئ' : 'Active technician sites across Egypt'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs text-amber-400 font-bold bg-[#141d44] px-3 py-1 rounded-full border border-amber-500/30">
+                    {workerCheckIns.length} {isAr ? 'فني حاضر' : 'Technicians'}
+                  </span>
+                </div>
+
+                {/* Radar Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {workerCheckIns.map((w) => {
+                    const st = getWorkerStatusBadge(w.status);
+                    return (
+                      <div
+                        key={w.checkInId}
+                        className="p-3.5 rounded-2xl bg-[#0c102b] border border-[#202958] flex flex-col justify-between gap-2"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2.5 h-2.5 rounded-full ${st.dotColor}`} />
+                            <strong className="text-xs font-bold text-white">{w.workerName}</strong>
+                          </div>
+                          <span className="text-[10px] px-2 py-0.5 rounded bg-[#171f4c] text-cyan-300 font-mono">
+                            {w.craft}
+                          </span>
+                        </div>
+
+                        <div className="text-[11px] text-slate-300 flex items-center gap-1.5">
+                          <MapPin className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                          <span className="truncate">{w.siteName}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-[10px] text-slate-400 pt-1 border-t border-[#182046]">
+                          <span>{isAr ? 'آخر تحديث:' : 'Updated:'} {w.checkInTime.split('T')[1]?.substring(0, 5) || '10:00'}</span>
+                          <span className="text-emerald-400 font-bold">{isAr ? st.labelAr : st.labelEn}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Sample Work Orders & Test Experience */}
+              <div className="bg-[#101533] rounded-3xl border border-[#21295c] p-6 shadow-2xl space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-amber-400" />
+                    <span>{isAr ? 'عينة من أوامر العمل' : 'Sample Work Orders'}</span>
+                  </h3>
+                  <button
+                    onClick={() => setShowWorkOrderForm(true)}
+                    className="p-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 text-xs font-bold transition flex items-center gap-1"
+                    title={isAr ? 'أضف أمر عمل جديد' : 'Add Work Order'}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{isAr ? 'أضف' : 'Add'}</span>
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {workOrders.slice(0, 3).map((order) => {
+                    const st = getStatusBadge(order.status);
+                    return (
+                      <div
+                        key={order.orderId}
+                        className="p-3.5 rounded-2xl bg-[#0c102b] border border-[#202958] space-y-2 text-xs"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-cyan-400 font-bold text-[11px]">{order.orderId}</span>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${st.color}`}>
+                            {isAr ? st.labelAr : st.labelEn}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-white leading-tight">{order.title}</h4>
+                        <div className="text-[11px] text-slate-400">
+                          {order.clientName} • {order.jointsCount} {isAr ? 'وصلة' : 'joints'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Hierarchy Switch Prompt */}
+                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/10 to-blue-500/10 border border-amber-500/20 text-xs space-y-2">
+                  <p className="text-slate-300">
+                    {isAr
+                      ? 'هل ترغب في تجربة صلاحيات محددة؟ استخدم شريط "تبديل التراتبية للاختبار" بالأعلى للانتقال بين المدير، المشرف، العميل، أو الفني.'
+                      : 'Want to experience a specific operational role? Use the switcher bar at the top to toggle between Manager, Supervisor, Client, or Worker.'}
+                  </p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      onClick={() => switchRole('manager')}
+                      className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px]"
+                    >
+                      {isAr ? 'دخول كمدير' : 'As Manager'}
+                    </button>
+                    <button
+                      onClick={() => switchRole('client')}
+                      className="px-2.5 py-1 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-[11px]"
+                    >
+                      {isAr ? 'دخول كعميل' : 'As Client'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

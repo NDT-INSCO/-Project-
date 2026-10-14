@@ -331,32 +331,35 @@ export const AiCustomerPlatform: React.FC<AiCustomerPlatformProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4 bg-[#11142e] p-3 rounded-2xl border border-[#212754]">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold text-slate-400 me-1">
-              {isAr ? 'أدوات الذكاء الاصطناعي المتقدمة:' : 'Advanced Grounding:'}
+              {isAr ? 'أدوات الذكاء الاصطناعي:' : 'AI Grounding Tools:'}
             </span>
 
-            <button
-              onClick={() => setActiveGrounding(activeGrounding === 'search' ? 'none' : 'search')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
-                activeGrounding === 'search'
-                  ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold'
-                  : 'bg-[#15193d] text-slate-300 border-[#252c61] hover:text-white'
-              }`}
-            >
-              <Globe className="w-3.5 h-3.5 text-sky-400" />
-              <span>{isAr ? 'بحث Google المباشر في الكودات' : 'Google Search Grounding'}</span>
-            </button>
+            {/* Merged Grounding Segment Pod */}
+            <div className="inline-flex items-center p-0.5 rounded-xl bg-[#0b0e24] border border-[#242b63]">
+              <button
+                onClick={() => setActiveGrounding(activeGrounding === 'search' ? 'none' : 'search')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  activeGrounding === 'search'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <Globe className="w-3.5 h-3.5 text-sky-400" />
+                <span>{isAr ? 'بحث Google المباشر في الكودات' : 'Google Search'}</span>
+              </button>
 
-            <button
-              onClick={() => setActiveGrounding(activeGrounding === 'maps' ? 'none' : 'maps')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition cursor-pointer ${
-                activeGrounding === 'maps'
-                  ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold'
-                  : 'bg-[#15193d] text-slate-300 border-[#252c61] hover:text-white'
-              }`}
-            >
-              <MapPin className="w-3.5 h-3.5 text-rose-400" />
-              <span>{isAr ? 'خرائط المواقع والمحطات (Google Maps)' : 'Google Maps Grounding'}</span>
-            </button>
+              <button
+                onClick={() => setActiveGrounding(activeGrounding === 'maps' ? 'none' : 'maps')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  activeGrounding === 'maps'
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow'
+                    : 'text-slate-300 hover:text-white'
+                }`}
+              >
+                <MapPin className="w-3.5 h-3.5 text-rose-400" />
+                <span>{isAr ? 'خرائط Google Maps' : 'Google Maps'}</span>
+              </button>
+            </div>
           </div>
 
           <button

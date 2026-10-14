@@ -160,6 +160,29 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
         'Inspect assigned work order specifications and drawings',
         'Submit daily joint counts and thermal soaking logs'
       ]
+    },
+    {
+      role: 'guest',
+      titleAr: 'ضيف وزائر المنصة (Guest Explorer)',
+      titleEn: 'Guest Explorer & Open Preview',
+      badgeAr: 'استكشاف وتصفح حر فوري',
+      badgeEn: 'Instant Free Exploration',
+      icon: Sparkles,
+      color: 'text-cyan-400',
+      borderColor: 'border-cyan-400',
+      bgGradient: 'from-cyan-500/20 via-[#10203f] to-[#0c1428]',
+      descriptionAr: 'تصفح مفتوح وسريع دون الحاجة لكلمة مرور أو حساب، مع إمكانية تجربة المحاكيات، استعراض المشاريع، واختبار منظومة العمليات.',
+      descriptionEn: 'Open frictionless access with zero credentials needed. Explore virtual workbenches, track records, and operational circles.',
+      capabilitiesAr: [
+        'استكشاف مباشر لكافة ورش العمل والمعامل الهندسية والمناهج',
+        'الاطلاع على نماذج أوامر العمل والخرائط الميدانية',
+        'طلب عروض أسعار تفاعلية ومحاورة مستشار الذكاء الاصطناعي'
+      ],
+      capabilitiesEn: [
+        'Direct exploration of all engineering curriculum and virtual labs',
+        'Preview sample work orders and field tracking radars',
+        'Generate instant RFQ quotes and interact with Gemini AI'
+      ]
     }
   ];
 
@@ -329,14 +352,47 @@ export const UnifiedLoginModal: React.FC<UnifiedLoginModalProps> = ({
           {activeTab === 'demo_roles' ? (
             <div>
               <div className="mb-4">
+                {/* 1-Click Quick Guest Entry Banner */}
+                <div className="mb-3.5 p-4 rounded-2xl bg-gradient-to-r from-cyan-950/70 via-[#0e1d3e] to-cyan-950/70 border-2 border-cyan-500/40 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 text-start">
+                    <div className="w-10 h-10 rounded-xl bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 flex-shrink-0">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm font-black text-white">
+                          {isAr ? 'الدخول السريع كـ ضيف (Guest Access)' : 'Fast Track: Continue as Guest'}
+                        </h3>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-400/20 text-cyan-300 border border-cyan-400/40 font-bold">
+                          {isAr ? 'تصفح فوري 100%' : 'No Password'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-300 mt-0.5">
+                        {isAr
+                          ? 'تصفح كافة الخدمات، المعامل التفاعلية الـ 6، نماذج العقود والتقارير بدون أي تسجيل مسبق.'
+                          : 'Explore all 6 interactive labs, sample work orders, and services with zero friction.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleSelectRoleLogin('guest')}
+                    className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-cyan-400 hover:from-cyan-400 hover:to-cyan-300 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-lg shadow-cyan-500/20 flex-shrink-0 active:scale-95"
+                  >
+                    <span>{isAr ? 'دخول كـ ضيف الآن' : 'Enter as Guest'}</span>
+                    <Arrow className="w-4 h-4 text-slate-950" />
+                  </button>
+                </div>
+
                 <p className="text-xs text-slate-400">
                   {isAr
-                    ? 'اختر الرتبة التي ترغب في تجربة دائرة رؤيتها وصلاحياتها في النظام:'
-                    : 'Select the operational hierarchy role you wish to inspect and test:'}
+                    ? 'أو اختر إحدى الصلاحيات القيادية والتنفيذية لاختبار دوائر الرؤية الخاصة بها:'
+                    : 'Or select a hierarchical operational circle to test its specific visibility & controls:'}
                 </p>
               </div>
 
-              {/* 4 Role Selection Cards */}
+              {/* Role Selection Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 {roleDefinitions.map((item) => {
                   const Icon = item.icon;
