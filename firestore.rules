@@ -1,0 +1,87 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation for User Profile
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['userId', 'email'])
+        && data.userId is string && data.userId.size() <= 128
+        && data.email is string && data.email.size() <= 256
+        && data.userId == request.auth.uid;
+    }
+
+    // Validation for Service Request / RFQ
+    function isValidServiceRequest(data) {
+      return data.keys().hasAll(['requestId', 'userId', 'serviceType', 'location'])
+        && data.requestId is string && data.requestId.size() <= 128
+        && data.userId is string && data.userId.size() <= 128
+        && data.serviceType is string && data.serviceType.size() <= 64
+        && data.location is string && data.location.size() <= 128
+        && data.userId == request.auth.uid;
+    }
+
+    // Validation for Technical Inquiry
+    function isValidInquiry(data) {
+      return data.keys().hasAll(['inquiryId', 'userId', 'userQuestion'])
+        && data.inquiryId is string && data.inquiryId.size() <= 128
+        && data.userId is string && data.userId.size() <= 128
+        && data.userQuestion is string && data.userQuestion.size() <= 2048
+        && data.userId == request.auth.uid;
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming());
+      allow update: if isOwner(userId) && isValidUserProfile(incoming());
+    }
+
+    // Service Requests & RFQ Bookings
+    match /serviceRequests/{requestId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid);
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && isValidId(requestId) && isValidServiceRequest(incoming());
+      allow update: if isSignedIn() && (existing().userId == request.auth.uid) && isValidServiceRequest(incoming());
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid);
+    }
+
+    // Inquiries Collection
+    match /inquiries/{inquiryId} {
+      allow get: if isSignedIn() && (existing().userId == request.auth.uid);
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && isValidId(inquiryId) && isValidInquiry(incoming());
+      allow delete: if isSignedIn() && (existing().userId == request.auth.uid);
+    }
+
+    // Test connection doc for validating setup
+    match /test/connection {
+      allow read: if true;
+    }
+  }
+}

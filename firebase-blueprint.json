@@ -1,0 +1,67 @@
+{
+  "entities": {
+    "userProfile": {
+      "title": "User Profile",
+      "description": "Registered client or engineer profile",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 128 },
+        "photoUrl": { "type": "string", "maxLength": 1024 },
+        "company": { "type": "string", "maxLength": 128 },
+        "role": { "type": "string", "maxLength": 64 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["userId", "email"]
+    },
+    "serviceRequest": {
+      "title": "Service Request & RFQ",
+      "description": "Client requested NDT or PWHT service inquiry and quotation",
+      "type": "object",
+      "properties": {
+        "requestId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "clientName": { "type": "string", "maxLength": 128 },
+        "contactPhone": { "type": "string", "maxLength": 64 },
+        "serviceType": { "type": "string", "maxLength": 64 },
+        "assetType": { "type": "string", "maxLength": 64 },
+        "material": { "type": "string", "maxLength": 64 },
+        "location": { "type": "string", "maxLength": 128 },
+        "urgency": { "type": "string", "maxLength": 32 },
+        "rfqReference": { "type": "string", "maxLength": 64 },
+        "status": { "type": "string", "enum": ["submitted", "reviewing", "scheduled", "completed"] },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["requestId", "userId", "serviceType", "location"]
+    },
+    "inquiry": {
+      "title": "Customer Technical Inquiry",
+      "description": "Recorded consultation with AI advisor",
+      "type": "object",
+      "properties": {
+        "inquiryId": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userQuestion": { "type": "string", "maxLength": 2048 },
+        "aiAnswer": { "type": "string", "maxLength": 10000 },
+        "category": { "type": "string", "maxLength": 64 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["inquiryId", "userId", "userQuestion"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "userProfile",
+      "description": "User account documents keyed by auth UID"
+    },
+    "/serviceRequests/{requestId}": {
+      "schema": "serviceRequest",
+      "description": "Client service orders and RFQ bookings"
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": "inquiry",
+      "description": "Saved technical consultations"
+    }
+  }
+}
