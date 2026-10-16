@@ -18,26 +18,29 @@ import {
   RefreshCw,
   Film,
   GraduationCap,
-  Wrench
+  Wrench,
+  Trophy
 } from 'lucide-react';
 import { Language, EducationalDefect, QuizQuestion } from '../types';
 import { NDT_METHODS, EDUCATIONAL_DEFECTS, STANDARDS_LIBRARY, SAMPLE_QUIZZES } from '../data/inscoData';
 import { IndustrialVideoGen } from './IndustrialVideoGen';
 import { DisciplineCurriculumView } from './academy/DisciplineCurriculumView';
-import { AcademyKnowledgeLibrary } from './academy/AcademyKnowledgeLibrary';
 import { InteractiveWorkshops } from './academy/InteractiveWorkshops';
 import { CurriculumQuizEngine } from './academy/CurriculumQuizEngine';
 import { CurriculumLevelProgressTracker } from './academy/CurriculumLevelProgressTracker';
+import { SemanticSearchBar } from './academy/SemanticSearchBar';
+import { CurriculumCertificatesView } from './academy/CurriculumCertificatesView';
+import { GlobalLeaderboard } from './academy/GlobalLeaderboard';
 
 interface EducationalAcademyProps {
   language: Language;
-  initialSubTab?: 'knowledge' | 'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen';
+  initialSubTab?: 'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'leaderboard';
 }
 
 export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language, initialSubTab }) => {
   const isAr = language === 'ar';
-  const [activeSubTab, setActiveSubTab] = useState<'knowledge' | 'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen'>(
-    initialSubTab || 'knowledge'
+  const [activeSubTab, setActiveSubTab] = useState<'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'leaderboard'>(
+    initialSubTab || 'curriculum'
   );
 
   // Target Module/Discipline when navigating to Quiz Mode from Curriculum
@@ -225,23 +228,24 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
           </h2>
           <p className="text-slate-300 text-sm sm:text-base mt-3">
             {isAr
-              ? 'تعلّم الأساس العلمي للفحص واللحام والمعادن والتآكل والجودة وسلامة الأصول، عبر دروس ومراجع ومسارات تعليمية ومحاكاة وأسئلة تدريبية. المحتوى للتعلّم ولا يمنح اعتماداً مهنياً.'
-              : 'Study the science of inspection, welding, metallurgy, corrosion, quality and asset integrity through lessons, references, curricula, simulations and practice checks. Educational content does not confer professional certification.'}
+              ? 'أدوات محاكاة تفاعلية لفحص عيوب اللحام، محاكي منحنيات المعالجة الحرارية PWHT، بنك أسئلة وتأهيل لاختبارات ASNT، ومستشار أكاديمي مدعوم بالذكاء الاصطناعي.'
+              : 'Interactive weld defect simulator, PWHT thermal curve calculator, ASNT practice exams, and ASME/API code explorer.'}
           </p>
         </div>
 
-        <p className="mb-6 rounded-xl border border-amber-500/25 bg-amber-500/5 p-4 text-xs sm:text-sm text-amber-100 leading-relaxed">
-          {isAr ? 'تنبيه: المناهج والساعات والاختبارات والمحاكاة إرشادية للتعلّم الذاتي، ولا تمنح شهادة ASNT أو API أو أي اعتماد مهني. يلزم التحقق من متطلبات الجهة المانحة والتدريب والخبرة والاختبارات والتفويض، ومراجعة الكود والإجراء المعتمد قبل أي تطبيق ميداني.' : 'Notice: curricula, hours, quizzes and simulations support self-study and do not award ASNT, API or other professional certification. Verify the applicable training, experience, examination and authorisation requirements and approved codes and procedures before field use.'}
-        </p>
+        {/* Semantic Search Bar for NDT & PWHT Technical Terms and Curriculum Modules */}
+        <div className="max-w-4xl mx-auto mb-10">
+          <SemanticSearchBar
+            language={language}
+            onNavigateToModule={(dId, lIdx, mId) => handleNavigateToCurriculumModule(dId, lIdx, mId)}
+            onLaunchQuiz={(dId, lId, mId, mTitle) => handleLaunchModuleQuiz(dId, lId as any, mId, mTitle)}
+          />
+        </div>
 
         {/* Unified Practical Category Hubs (Prevents multi-line wrapping & page displacement) */}
         <div className="space-y-4 mb-8">
-          {/* Main 4 Unified Functional Hubs */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 bg-[#0c0e22] p-1.5 rounded-2xl border-2 border-[#202755] shadow-xl max-w-5xl mx-auto">
-            <button onClick={() => setActiveSubTab('knowledge')} aria-pressed={activeSubTab === 'knowledge'} className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeSubTab === 'knowledge' ? 'bg-amber-500 text-slate-950 shadow-lg' : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'}`}>
-              <BookOpen className="w-4 h-4 shrink-0" />
-              <span>{isAr ? 'مكتبة الدروس والمراجع' : 'Lessons & References'}</span>
-            </button>
+          {/* Main 5 Unified Functional Hubs */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 bg-[#0c0e22] p-1.5 rounded-2xl border-2 border-[#202755] shadow-xl max-w-6xl mx-auto">
             {/* Hub 1: Comprehensive Curricula */}
             <button
               onClick={() => setActiveSubTab('curriculum')}
@@ -252,10 +256,23 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               }`}
             >
               <GraduationCap className={`w-4 h-4 ${activeSubTab === 'curriculum' ? 'text-slate-950' : 'text-amber-400'}`} />
-              <span className="truncate">{isAr ? 'المناهج والمسارات (8 مجالات)' : 'Curricula (8 Disciplines)'}</span>
+              <span className="truncate">{isAr ? 'المناهج والمسارات' : 'Curricula (8)'}</span>
             </button>
 
-            {/* Hub 2: Hands-on Interactive Workbenches */}
+            {/* Hub 2: Certification & Digital Badges */}
+            <button
+              onClick={() => setActiveSubTab('certificates')}
+              className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                activeSubTab === 'certificates'
+                  ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.01]'
+                  : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'
+              }`}
+            >
+              <Award className={`w-4 h-4 ${activeSubTab === 'certificates' ? 'text-slate-950' : 'text-amber-400'}`} />
+              <span className="truncate">{isAr ? 'الشهادات والأوسمة' : 'Certificates & Badges'}</span>
+            </button>
+
+            {/* Hub 3: Hands-on Interactive Workbenches */}
             <button
               onClick={() => setActiveSubTab('workshops')}
               className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
@@ -265,10 +282,10 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               }`}
             >
               <Wrench className={`w-4 h-4 ${activeSubTab === 'workshops' ? 'text-slate-950' : 'text-emerald-400'}`} />
-              <span className="truncate">{isAr ? 'معامل الورش الحية (6 مختبرات)' : 'Interactive Labs (6)'}</span>
+              <span className="truncate">{isAr ? 'معامل الورش الحية' : 'Interactive Labs (6)'}</span>
             </button>
 
-            {/* Hub 3: Thermal & Defect Simulators */}
+            {/* Hub 4: Thermal & Defect Simulators */}
             <button
               onClick={() => {
                 if (activeSubTab !== 'defects' && activeSubTab !== 'pwht_curve') {
@@ -285,15 +302,15 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               <span className="truncate">{isAr ? 'محاكيات اللحام و PWHT' : 'Defect & PWHT Sim'}</span>
             </button>
 
-            {/* Hub 4: Codes, Methods & AI Professor */}
+            {/* Hub 5: Codes, Methods & AI Professor */}
             <button
               onClick={() => {
-                if (!['standards', 'methods', 'quiz', 'ask_ai', 'video_gen'].includes(activeSubTab)) {
+                if (!['standards', 'methods', 'quiz', 'ask_ai', 'video_gen', 'leaderboard'].includes(activeSubTab)) {
                   setActiveSubTab('standards');
                 }
               }}
               className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                ['standards', 'methods', 'quiz', 'ask_ai', 'video_gen'].includes(activeSubTab)
+                ['standards', 'methods', 'quiz', 'ask_ai', 'video_gen', 'leaderboard'].includes(activeSubTab)
                   ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.01]'
                   : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'
               }`}
@@ -331,8 +348,8 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             </div>
           )}
 
-          {/* Child Sub-Segment Pills for Hub 4: Knowledge & AI */}
-          {['standards', 'methods', 'quiz', 'ask_ai', 'video_gen'].includes(activeSubTab) && (
+          {/* Child Sub-Segment Pills for Hub 5: Knowledge, Exams & AI */}
+          {['standards', 'methods', 'quiz', 'ask_ai', 'video_gen', 'leaderboard'].includes(activeSubTab) && (
             <div className="flex flex-wrap items-center justify-center gap-1.5 animate-fadeIn max-w-4xl mx-auto">
               <button
                 onClick={() => setActiveSubTab('standards')}
@@ -371,6 +388,18 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               </button>
 
               <button
+                onClick={() => setActiveSubTab('leaderboard')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'leaderboard'
+                    ? 'bg-amber-500 text-slate-950 font-black shadow-md'
+                    : 'bg-[#10132b] text-amber-300 hover:text-white border border-amber-400/40'
+                }`}
+              >
+                <Trophy className={`w-3.5 h-3.5 ${activeSubTab === 'leaderboard' ? 'text-slate-950' : 'text-amber-400'}`} />
+                <span>{isAr ? 'لوحة المتصدرين' : 'Leaderboard'}</span>
+              </button>
+
+              <button
                 onClick={() => setActiveSubTab('ask_ai')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
                   activeSubTab === 'ask_ai'
@@ -397,19 +426,16 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
           )}
         </div>
 
-        {activeSubTab === 'knowledge' && (
-          <AcademyKnowledgeLibrary language={language} onCurriculum={disciplineId => {
-            setCurriculumTarget({ disciplineId, levelIdx: 0 });
-            setActiveSubTab('curriculum');
-          }} />
-        )}
-
         {/* Persistent Curriculum Level Progress Tracking HUD */}
-        <div className="mb-8" hidden={activeSubTab === 'knowledge'}>
+        <div className="mb-8">
           <CurriculumLevelProgressTracker
             language={language}
             onNavigateToModule={(dId, lIdx, mId) => handleNavigateToCurriculumModule(dId, lIdx, mId)}
             onLaunchQuiz={(dId, lId, mId, mTitle) => handleLaunchModuleQuiz(dId, lId as any, mId, mTitle)}
+            onNavigateToCertificates={() => {
+              setActiveSubTab('certificates');
+              window.scrollTo({ top: 380, behavior: 'smooth' });
+            }}
           />
         </div>
 
@@ -421,6 +447,19 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             initialLevelIdx={curriculumTarget.levelIdx}
             initialTargetModuleId={curriculumTarget.moduleId}
             onSelectWorkshop={() => setActiveSubTab('workshops')}
+            onLaunchQuiz={(dId, lId, mId, mTitle) => handleLaunchModuleQuiz(dId, lId as any, mId, mTitle)}
+            onNavigateToCertificates={() => {
+              setActiveSubTab('certificates');
+              window.scrollTo({ top: 380, behavior: 'smooth' });
+            }}
+          />
+        )}
+
+        {/* Sub-Tab 0B: Visual Certification & Digital Badges Section */}
+        {activeSubTab === 'certificates' && (
+          <CurriculumCertificatesView
+            language={language}
+            onNavigateToModule={(dId, lIdx, mId) => handleNavigateToCurriculumModule(dId, lIdx, mId)}
             onLaunchQuiz={(dId, lId, mId, mTitle) => handleLaunchModuleQuiz(dId, lId as any, mId, mTitle)}
           />
         )}
@@ -767,8 +806,8 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               </h3>
               <p className="text-xs sm:text-sm text-slate-400 mt-1">
                 {isAr
-                  ? 'دليل تعريفي وليس نصوص المواصفات. راجع النسخة المرخصة وإصدار العقد والإجراء المعتمد؛ لا تفترض أن أحدث إصدار هو الإصدار المطلوب للمشروع.'
-                  : 'An introductory directory, not the standards themselves. Consult licensed copies, the contract edition and approved procedures; the latest edition is not necessarily the project edition.'}
+                  ? 'جميع إجراءات التفتيش والاختبار بشركة إنسكو محررة وفقاً لأحدث إصدارات هذه الأكواد العالمية.'
+                  : 'All INSCO method procedures and acceptance criteria are issued per these international standards.'}
               </p>
             </div>
 
@@ -804,6 +843,26 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             }}
             onNavigateToDiscipline={() => {
               setActiveSubTab('curriculum');
+            }}
+            onOpenLeaderboard={() => {
+              setActiveSubTab('leaderboard');
+            }}
+          />
+        )}
+
+        {/* Sub-Tab 5B: Global Leaderboard */}
+        {activeSubTab === 'leaderboard' && (
+          <GlobalLeaderboard
+            language={language}
+            onLaunchQuiz={(disciplineId, levelId) => {
+              if (disciplineId) {
+                handleLaunchModuleQuiz(disciplineId, levelId as any);
+              } else {
+                setActiveSubTab('quiz');
+              }
+            }}
+            onNavigateToDiscipline={(disciplineId) => {
+              handleNavigateToCurriculumModule(disciplineId, 0);
             }}
           />
         )}

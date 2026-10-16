@@ -139,6 +139,32 @@
         "createdAt": { "type": "string" }
       },
       "required": ["inquiryId", "userId", "userQuestion"]
+    },
+    "quizLeaderboardEntry": {
+      "title": "Quiz Leaderboard Entry",
+      "description": "High score achievement in Educational Academy Quiz Mode",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "userName": { "type": "string", "maxLength": 128 },
+        "userRole": { "type": "string", "maxLength": 128 },
+        "company": { "type": "string", "maxLength": 128 },
+        "country": { "type": "string", "maxLength": 32 },
+        "disciplineId": { "type": "string", "maxLength": 64 },
+        "disciplineTitleAr": { "type": "string", "maxLength": 128 },
+        "disciplineTitleEn": { "type": "string", "maxLength": 128 },
+        "levelId": { "type": "string", "maxLength": 64 },
+        "levelTitleAr": { "type": "string", "maxLength": 128 },
+        "levelTitleEn": { "type": "string", "maxLength": 128 },
+        "score": { "type": "number" },
+        "correctCount": { "type": "number" },
+        "totalQuestions": { "type": "number" },
+        "timeSpentSeconds": { "type": "number" },
+        "badgeTier": { "type": "string", "enum": ["platinum", "gold", "silver", "bronze"] },
+        "completedAt": { "type": "string" }
+      },
+      "required": ["id", "userName", "disciplineId", "levelId", "score"]
     }
   },
   "firestore": {
@@ -169,6 +195,10 @@
     "/inquiries/{inquiryId}": {
       "schema": "inquiry",
       "description": "Saved technical consultations"
+    },
+    "/quizLeaderboard/{entryId}": {
+      "schema": "quizLeaderboardEntry",
+      "description": "Global leaderboard rankings for Quiz Mode high scores"
     }
   }
 }

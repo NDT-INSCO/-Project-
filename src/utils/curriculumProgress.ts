@@ -379,3 +379,61 @@ export function calculateTotalAcademyProgress(disciplines: EngineeringDiscipline
   };
 }
 
+export interface IssuedCertificate {
+  certificateId: string;
+  disciplineId: string;
+  disciplineTitleAr: string;
+  disciplineTitleEn: string;
+  levelId: string;
+  levelNameAr: string;
+  levelNameEn: string;
+  candidateName: string;
+  issuedAt: string;
+  trainingHours: number;
+  applicableCodes: string[];
+  score?: number;
+  grade: 'Distinction' | 'Merit' | 'Certified';
+  verificationCode: string;
+}
+
+const STORAGE_KEY_CERTIFICATES = 'insco_academy_issued_certificates';
+
+/**
+ * Retrieves all earned certificates from localStorage
+ */
+export function getIssuedCertificates(): Record<string, IssuedCertificate> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_CERTIFICATES);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    console.warn('Error reading issued certificates:', e);
+    return {};
+  }
+}
+
+/**
+ * Saves or updates an issued certificate
+ */
+export function saveIssuedCertificate(cert: IssuedCertificate): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const certs = getIssuedCertificates();
+    const key = `${cert.disciplineId}_${cert.levelId}`;
+    certs[key] = cert;
+    localStorage.setItem(STORAGE_KEY_CERTIFICATES, JSON.stringify(certs));
+    window.dispatchEvent(new Event(PROGRESS_UPDATE_EVENT));
+  } catch (e) {
+    console.warn('Error saving certificate:', e);
+  }
+}
+
+/**
+ * Checks whether a specific level has been certified
+ */
+export function isLevelCertified(disciplineId: string, levelId: string): boolean {
+  const certs = getIssuedCertificates();
+  return Boolean(certs[`${disciplineId}_${levelId}`]);
+}
+
+

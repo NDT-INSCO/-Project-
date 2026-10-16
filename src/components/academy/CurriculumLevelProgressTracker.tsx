@@ -36,11 +36,16 @@ import {
   ModuleProgressRecord,
   DetailedLevelProgress
 } from '../../utils/curriculumProgress';
+import { 
+  isModuleKnowledgeChecked, 
+  KNOWLEDGE_CHECK_EVENT 
+} from '../../utils/knowledgeCheckService';
 
 export interface CurriculumLevelProgressTrackerProps {
   language: Language;
   onNavigateToModule?: (disciplineId: string, levelIdx: number, moduleId?: string) => void;
   onLaunchQuiz?: (disciplineId: string, levelId: string, moduleId?: string, moduleTitle?: { ar: string; en: string }) => void;
+  onNavigateToCertificates?: () => void;
   className?: string;
   defaultExpanded?: boolean;
 }
@@ -49,6 +54,7 @@ export const CurriculumLevelProgressTracker: React.FC<CurriculumLevelProgressTra
   language,
   onNavigateToModule,
   onLaunchQuiz,
+  onNavigateToCertificates,
   className = '',
   defaultExpanded = true
 }) => {
@@ -67,9 +73,11 @@ export const CurriculumLevelProgressTracker: React.FC<CurriculumLevelProgressTra
     };
 
     window.addEventListener(PROGRESS_UPDATE_EVENT, handleProgressUpdate);
+    window.addEventListener(KNOWLEDGE_CHECK_EVENT, handleProgressUpdate);
     window.addEventListener('storage', handleProgressUpdate);
     return () => {
       window.removeEventListener(PROGRESS_UPDATE_EVENT, handleProgressUpdate);
+      window.removeEventListener(KNOWLEDGE_CHECK_EVENT, handleProgressUpdate);
       window.removeEventListener('storage', handleProgressUpdate);
     };
   }, []);
@@ -158,6 +166,17 @@ export const CurriculumLevelProgressTracker: React.FC<CurriculumLevelProgressTra
               ))}
             </select>
           </div>
+
+          {onNavigateToCertificates && (
+            <button
+              onClick={onNavigateToCertificates}
+              className="px-2.5 py-2 rounded-xl bg-gradient-to-r from-amber-500/15 to-amber-600/15 hover:from-amber-500/25 hover:to-amber-600/25 text-amber-300 hover:text-amber-200 border border-amber-400/40 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+              title={isAr ? 'عرض الشهادات والشارات الرقمية المكتسبة' : 'View Earned Certificates & Digital Badges'}
+            >
+              <Award className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">{isAr ? 'الأوسمة والشهادات' : 'Certificates'}</span>
+            </button>
+          )}
 
           <button
             onClick={() => setIsExpanded(prev => !prev)}
@@ -344,14 +363,26 @@ export const CurriculumLevelProgressTracker: React.FC<CurriculumLevelProgressTra
               </span>
             </div>
 
-            {onLaunchQuiz && (
-              <button
-                onClick={() => onLaunchQuiz(activeDiscipline.id, activeLevel.levelId)}
-                className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition cursor-pointer self-start sm:self-auto shrink-0 shadow-sm"
-              >
-                {isAr ? 'دخول الاختبار الشامل والشهادة' : 'Launch Full Level Exam'}
-              </button>
-            )}
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+              {onNavigateToCertificates && (
+                <button
+                  onClick={onNavigateToCertificates}
+                  className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+                >
+                  <Award className="w-3.5 h-3.5 text-slate-950" />
+                  <span>{isAr ? 'استعراض الشهادة والشارة' : 'View Certificate & Badge'}</span>
+                </button>
+              )}
+
+              {onLaunchQuiz && (
+                <button
+                  onClick={() => onLaunchQuiz(activeDiscipline.id, activeLevel.levelId)}
+                  className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition cursor-pointer shrink-0 shadow-sm"
+                >
+                  {isAr ? 'دخول الاختبار الشامل والشهادة' : 'Launch Full Level Exam'}
+                </button>
+              )}
+            </div>
           </div>
         ) : detailedStats.nextModule ? (
           <div className="p-3 rounded-xl bg-[#101438] border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
@@ -444,6 +475,11 @@ export const CurriculumLevelProgressTracker: React.FC<CurriculumLevelProgressTra
                         {isCompleted && (
                           <span className="text-emerald-400 font-bold flex items-center gap-1">
                             ✓ {record?.byQuiz ? (isAr ? `اختبار (${record.score}%)` : `Quiz (${record.score}%)`) : (isAr ? 'تمت الدراسة' : 'Studied')}
+                          </span>
+                        )}
+                        {isModuleKnowledgeChecked(mod.id) && (
+                          <span className="text-amber-300 font-bold flex items-center gap-1">
+                            ✓ {isAr ? 'فهم مستوعب' : 'Checked'}
                           </span>
                         )}
                         {isNext && (

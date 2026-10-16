@@ -20,7 +20,8 @@ import {
   Sliders,
   Filter,
   Check,
-  RotateCcw
+  RotateCcw,
+  Trophy
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Language } from '../../types';
@@ -28,6 +29,7 @@ import { ENGINEERING_DISCIPLINES } from '../../data/academyCurriculum';
 import { CURRICULUM_QUIZ_BANK, CurriculumQuizQuestion } from '../../data/curriculum/curriculumQuizBank';
 import { useAuth } from '../../context/AuthContext';
 import { markModuleCompleted } from '../../utils/curriculumProgress';
+import { submitLeaderboardScore } from '../../utils/quizLeaderboardService';
 
 export interface CurriculumQuizEngineProps {
   language: Language;
@@ -37,6 +39,7 @@ export interface CurriculumQuizEngineProps {
   initialModuleTitle?: { ar: string; en: string };
   onCloseTargetedQuiz?: () => void;
   onNavigateToDiscipline?: (disciplineId: string) => void;
+  onOpenLeaderboard?: () => void;
 }
 
 export const CurriculumQuizEngine: React.FC<CurriculumQuizEngineProps> = ({
@@ -46,7 +49,8 @@ export const CurriculumQuizEngine: React.FC<CurriculumQuizEngineProps> = ({
   initialModuleId,
   initialModuleTitle,
   onCloseTargetedQuiz,
-  onNavigateToDiscipline
+  onNavigateToDiscipline,
+  onOpenLeaderboard
 }) => {
   const isAr = language === 'ar';
   const { userProfile } = useAuth();
@@ -66,6 +70,8 @@ export const CurriculumQuizEngine: React.FC<CurriculumQuizEngineProps> = ({
     userProfile?.displayName || (isAr ? 'مهندس متدرب / باحث أكاديمي' : 'Certified Engineer / Student')
   );
   const [isReviewMode, setIsReviewMode] = useState<boolean>(false);
+  const [quizStartTime, setQuizStartTime] = useState<number>(() => Date.now());
+  const [hasSubmittedLeaderboard, setHasSubmittedLeaderboard] = useState<boolean>(false);
 
   // Sync when props change (e.g. user clicked another module in curriculum)
   useEffect(() => {
@@ -78,6 +84,8 @@ export const CurriculumQuizEngine: React.FC<CurriculumQuizEngineProps> = ({
       setShowExplanation(false);
       setIsCompleted(false);
       setIsReviewMode(false);
+      setQuizStartTime(Date.now());
+      setHasSubmittedLeaderboard(false);
     }
   }, [initialDisciplineId, initialLevelId, initialModuleId]);
 
@@ -117,31 +125,58 @@ export const CurriculumQuizEngine: React.FC<CurriculumQuizEngineProps> = ({
   const percentage = filteredQuestions.length > 0 ? Math.round((score / filteredQuestions.length) * 100) : 0;
   const isPassed = percentage >= 70;
 
-  // Trigger celebration confetti on pass
+  // Trigger celebration confetti on pass & submit score to Global Leaderboard
   useEffect(() => {
-    if (isCompleted && isPassed) {
-      try {
-        confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
-      } catch (e) {
-        // ignore if not supported
+    if (isCompleted) {
+      if (isPassed) {
+        try {
+          confetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        } catch (e) {
+          // ignore if not supported
+        }
+
+        // Persist passed module to progress tracking
+        if (activeModuleId) {
+          markModuleCompleted(
+            activeModuleId,
+            currentQ?.disciplineId || '',
+            currentQ?.levelId || '',
+            true,
+            percentage
+          );
+        }
       }
 
-      // Persist passed module to progress tracking
-      if (activeModuleId) {
-        markModuleCompleted(
-          activeModuleId,
-          currentQ?.disciplineId || '',
-          currentQ?.levelId || '',
-          true,
-          percentage
-        );
+      // Auto-submit score to Global Leaderboard if not already submitted
+      if (!hasSubmittedLeaderboard && filteredQuestions.length > 0) {
+        setHasSubmittedLeaderboard(true);
+        const timeSpent = Math.max(15, Math.round((Date.now() - quizStartTime) / 1000));
+        const matchedDiscipline = ENGINEERING_DISCIPLINES.find(d => d.id === (currentQ?.disciplineId || selectedDisciplineId));
+        
+        submitLeaderboardScore({
+          userId: userProfile?.userId,
+          userName: candidateName,
+          userRole: userProfile?.role ? `${userProfile.role.toUpperCase()} Engineer` : (isAr ? 'مهندس فحص وتفتيش' : 'Inspection Specialist'),
+          company: userProfile?.company || (isAr ? 'أكاديمية إنسكو الهندسية' : 'INSCO Academy Trainee'),
+          country: 'SA',
+          disciplineId: currentQ?.disciplineId || selectedDisciplineId || 'general',
+          disciplineTitleAr: matchedDiscipline?.titleAr || (isAr ? 'الفحص الهندسي والمعالجة الحرارية' : 'NDT & PWHT Examination'),
+          disciplineTitleEn: matchedDiscipline?.titleEn || 'NDT & PWHT Examination',
+          levelId: currentQ?.levelId || selectedLevelId || 'level2',
+          levelTitleAr: selectedLevelId === 'level3' ? 'المستوى الثالث (Level III)' : selectedLevelId === 'academic' ? 'الأساس الأكاديمي' : 'المستوى الثاني (Level II)',
+          levelTitleEn: selectedLevelId === 'level3' ? 'Level III Specialist' : selectedLevelId === 'academic' ? 'Academic Foundation' : 'Level II Inspector',
+          score: percentage,
+          correctCount: score,
+          totalQuestions: filteredQuestions.length,
+          timeSpentSeconds: timeSpent
+        });
       }
     }
-  }, [isCompleted, isPassed, activeModuleId, percentage, currentQ]);
+  }, [isCompleted, isPassed, activeModuleId, percentage, currentQ, hasSubmittedLeaderboard, filteredQuestions.length, quizStartTime, candidateName, userProfile, selectedDisciplineId, selectedLevelId, score, isAr]);
 
   // Handlers
   const handleSelectOption = (optIdx: number) => {
@@ -181,6 +216,8 @@ export const CurriculumQuizEngine: React.FC<CurriculumQuizEngineProps> = ({
     setShowExplanation(false);
     setIsCompleted(false);
     setIsReviewMode(false);
+    setQuizStartTime(Date.now());
+    setHasSubmittedLeaderboard(false);
   };
 
   const handleStartReview = () => {
@@ -303,6 +340,17 @@ export const CurriculumQuizEngine: React.FC<CurriculumQuizEngineProps> = ({
                 <Clock className="w-3.5 h-3.5" />
                 <span>{isAr ? 'نمط الاختبار القياسي' : 'Exam Mode'}</span>
               </button>
+
+              {onOpenLeaderboard && (
+                <button
+                  onClick={onOpenLeaderboard}
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 bg-[#171d47] hover:bg-[#202863] text-amber-300 border border-amber-400/40 shadow-sm"
+                  title={isAr ? 'عرض لوحة المتصدرين العالمية' : 'View Global Leaderboard'}
+                >
+                  <Trophy className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{isAr ? 'لوحة المتصدرين' : 'Leaderboard'}</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -609,6 +657,16 @@ export const CurriculumQuizEngine: React.FC<CurriculumQuizEngineProps> = ({
                 >
                   <Printer className="w-4 h-4" />
                   <span>{isAr ? 'طباعة / حفظ شهادة الإنجاز' : 'Print / Save Certificate'}</span>
+                </button>
+              )}
+
+              {onOpenLeaderboard && (
+                <button
+                  onClick={onOpenLeaderboard}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-amber-600/30 border border-amber-400 text-amber-300 font-bold text-xs sm:text-sm cursor-pointer inline-flex items-center gap-2 shadow-sm"
+                >
+                  <Trophy className="w-4 h-4 text-amber-400" />
+                  <span>{isAr ? 'عرض النتيجة في لوحة المتصدرين' : 'View on Leaderboard'}</span>
                 </button>
               )}
             </div>

@@ -30,7 +30,9 @@ const VALID_TABS = [
   'workshops',
   'simulation',
   'pwht',
-  'defects'
+  'defects',
+  'certificates',
+  'leaderboard'
 ];
 
 export default function App() {
@@ -258,7 +260,7 @@ export default function App() {
           </div>
         )}
 
-        {['academy', 'workshops', 'simulation', 'pwht', 'defects'].includes(currentTab) && (
+        {['academy', 'workshops', 'simulation', 'pwht', 'defects', 'certificates', 'leaderboard'].includes(currentTab) && (
           <div className="pt-4">
             <EducationalAcademy 
               language={language} 
@@ -269,7 +271,11 @@ export default function App() {
                   ? 'pwht_curve'
                   : currentTab === 'defects'
                   ? 'defects'
-                  : 'knowledge'
+                  : currentTab === 'certificates'
+                  ? 'certificates'
+                  : currentTab === 'leaderboard'
+                  ? 'leaderboard'
+                  : 'curriculum'
               }
             />
           </div>

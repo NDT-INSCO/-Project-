@@ -25,11 +25,19 @@ import {
   BarChart3,
   RotateCcw,
   Square,
-  CheckSquare
+  CheckSquare,
+  BrainCircuit
 } from 'lucide-react';
 import { Language } from '../../types';
 import { ENGINEERING_DISCIPLINES, EngineeringDiscipline, DisciplineLevel, CurriculumModule } from '../../data/academyCurriculum';
 import { CurriculumQuizEngine } from './CurriculumQuizEngine';
+import { SemanticSearchBar } from './SemanticSearchBar';
+import { KnowledgeCheckModal } from './KnowledgeCheckModal';
+import { 
+  isModuleKnowledgeChecked, 
+  KNOWLEDGE_CHECK_EVENT, 
+  getStoredKnowledgeChecks 
+} from '../../utils/knowledgeCheckService';
 import { 
   getCompletedModules, 
   toggleModuleCompleted, 
@@ -56,6 +64,7 @@ interface DisciplineCurriculumViewProps {
     moduleId?: string,
     moduleTitle?: { ar: string; en: string }
   ) => void;
+  onNavigateToCertificates?: () => void;
 }
 
 export const DisciplineCurriculumView: React.FC<DisciplineCurriculumViewProps> = ({ 
@@ -64,7 +73,8 @@ export const DisciplineCurriculumView: React.FC<DisciplineCurriculumViewProps> =
   initialLevelIdx,
   initialTargetModuleId,
   onSelectWorkshop,
-  onLaunchQuiz
+  onLaunchQuiz,
+  onNavigateToCertificates
 }) => {
   const isAr = language === 'ar';
   
@@ -101,12 +111,15 @@ export const DisciplineCurriculumView: React.FC<DisciplineCurriculumViewProps> =
   useEffect(() => {
     const handleProgressChange = () => {
       setCompletedModules(getCompletedModules());
+      setKnowledgeChecksMap(getStoredKnowledgeChecks());
     };
 
     window.addEventListener(PROGRESS_UPDATE_EVENT, handleProgressChange);
+    window.addEventListener(KNOWLEDGE_CHECK_EVENT, handleProgressChange);
     window.addEventListener('storage', handleProgressChange);
     return () => {
       window.removeEventListener(PROGRESS_UPDATE_EVENT, handleProgressChange);
+      window.removeEventListener(KNOWLEDGE_CHECK_EVENT, handleProgressChange);
       window.removeEventListener('storage', handleProgressChange);
     };
   }, []);
@@ -118,6 +131,17 @@ export const DisciplineCurriculumView: React.FC<DisciplineCurriculumViewProps> =
     moduleId: string;
     moduleTitle: { ar: string; en: string };
   } | null>(null);
+
+  // Modal State for single-question Knowledge Check pop-up after reading module
+  const [knowledgeCheckTarget, setKnowledgeCheckTarget] = useState<{
+    disciplineId: string;
+    levelId: string;
+    module: CurriculumModule;
+    disciplineTitleAr?: string;
+    disciplineTitleEn?: string;
+  } | null>(null);
+
+  const [knowledgeChecksMap, setKnowledgeChecksMap] = useState<Record<string, any>>(() => getStoredKnowledgeChecks());
 
   // Quick Formula Interactive Calculator State
   const [calcWavelengthV, setCalcWavelengthV] = useState<number>(5920); // m/s in steel
@@ -218,18 +242,24 @@ export const DisciplineCurriculumView: React.FC<DisciplineCurriculumViewProps> =
             </p>
           </div>
 
-          {/* Quick Search Input */}
-          <div className="w-full lg:w-80">
-            <div className="relative">
-              <Search className="w-4 h-4 text-slate-400 absolute start-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder={isAr ? 'ابحث عن تقنية، كود، أو شهادة...' : 'Search discipline, method, code...'}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#0a0d24] border border-[#232958] focus:border-amber-400 rounded-xl ps-10 pe-4 py-2.5 text-xs text-white placeholder-slate-400 transition outline-none"
-              />
-            </div>
+          {/* Semantic Search Bar */}
+          <div className="w-full lg:w-96">
+            <SemanticSearchBar
+              language={language}
+              placeholder={isAr ? 'بحث دلالي بالمصطلحات والوحدات...' : 'Semantic search terms & modules...'}
+              onNavigateToModule={(dId, lIdx, mId) => {
+                handleSelectDiscipline(dId);
+                handleSelectLevelIdx(lIdx);
+                if (mId) {
+                  setExpandedModuleId(mId);
+                  setTimeout(() => {
+                    const el = document.getElementById(`module-${mId}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }, 200);
+                }
+              }}
+              onLaunchQuiz={onLaunchQuiz}
+            />
           </div>
         </div>
 
@@ -705,23 +735,35 @@ export const DisciplineCurriculumView: React.FC<DisciplineCurriculumViewProps> =
                       </span>
                     </div>
 
-                    <button
-                      onClick={() => {
-                        if (onLaunchQuiz) {
-                          onLaunchQuiz(activeDiscipline.id, activeLevel.levelId);
-                        } else {
-                          setModalQuizTarget({
-                            disciplineId: activeDiscipline.id,
-                            levelId: activeLevel.levelId as any,
-                            moduleId: activeLevel.modules[0]?.id || '',
-                            moduleTitle: { ar: activeLevel.nameAr, en: activeLevel.nameEn }
-                          });
-                        }
-                      }}
-                      className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition cursor-pointer self-start sm:self-auto shadow-md"
-                    >
-                      {isAr ? 'اختبار تقييم المستوى الشامل والشهادة' : 'Take Full Level Exam'}
-                    </button>
+                    <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+                      {onNavigateToCertificates && (
+                        <button
+                          onClick={onNavigateToCertificates}
+                          className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition cursor-pointer flex items-center gap-1.5 shadow-md"
+                        >
+                          <Award className="w-3.5 h-3.5 text-slate-950" />
+                          <span>{isAr ? 'عرض الشهادة والشارة' : 'View Certificate & Badge'}</span>
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => {
+                          if (onLaunchQuiz) {
+                            onLaunchQuiz(activeDiscipline.id, activeLevel.levelId);
+                          } else {
+                            setModalQuizTarget({
+                              disciplineId: activeDiscipline.id,
+                              levelId: activeLevel.levelId as any,
+                              moduleId: activeLevel.modules[0]?.id || '',
+                              moduleTitle: { ar: activeLevel.nameAr, en: activeLevel.nameEn }
+                            });
+                          }
+                        }}
+                        className="px-3.5 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs transition cursor-pointer shadow-md"
+                      >
+                        {isAr ? 'اختبار تقييم المستوى الشامل' : 'Take Full Level Exam'}
+                      </button>
+                    </div>
                   </div>
                 ) : detailedLevelStats.nextModule ? (
                   <div className="p-3 rounded-xl bg-[#0e1233] border border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
@@ -827,6 +869,7 @@ export const DisciplineCurriculumView: React.FC<DisciplineCurriculumViewProps> =
                     const modRecord = completedModules[mod.id];
                     const isCompleted = Boolean(modRecord);
                     const isNextUp = !isCompleted && detailedLevelStats.nextModule?.id === mod.id;
+                    const isKnowledgeChecked = Boolean(knowledgeChecksMap[mod.id]?.passed);
 
                     return (
                       <div 
@@ -874,6 +917,14 @@ export const DisciplineCurriculumView: React.FC<DisciplineCurriculumViewProps> =
                                     </span>
                                   </span>
                                 )}
+
+                                {/* Knowledge Checked badge */}
+                                {isKnowledgeChecked && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-bold font-mono-code">
+                                    <BrainCircuit className="w-3 h-3 text-amber-400" />
+                                    <span>{isAr ? 'تم التحقق من الفهم ✓' : 'Knowledge Checked ✓'}</span>
+                                  </span>
+                                )}
                               </div>
                             </div>
 
@@ -891,14 +942,25 @@ export const DisciplineCurriculumView: React.FC<DisciplineCurriculumViewProps> =
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                toggleModuleCompleted(mod.id, activeDiscipline.id, activeLevel.levelId);
+                                if (!isCompleted) {
+                                  // Open single-question Knowledge Check pop-up immediately after reading module
+                                  setKnowledgeCheckTarget({
+                                    disciplineId: activeDiscipline.id,
+                                    levelId: activeLevel.levelId,
+                                    module: mod,
+                                    disciplineTitleAr: activeDiscipline.titleAr,
+                                    disciplineTitleEn: activeDiscipline.titleEn
+                                  });
+                                } else {
+                                  toggleModuleCompleted(mod.id, activeDiscipline.id, activeLevel.levelId);
+                                }
                               }}
                               className={`p-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
                                 isCompleted
                                   ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 hover:bg-emerald-500/30'
                                   : 'bg-[#181d45] text-slate-400 hover:text-white border border-[#273273] hover:bg-[#202758]'
                               }`}
-                              title={isAr ? (isCompleted ? 'إلغاء التعليم كمكتمل' : 'تعليم الوحدة كمكتملة بعد الدراسة') : (isCompleted ? 'Mark as incomplete' : 'Mark module as completed')}
+                              title={isAr ? (isCompleted ? 'إلغاء التعليم كمكتمل' : 'التحقق السريع من الفهم وإتمام الوحدة') : (isCompleted ? 'Mark as incomplete' : 'Take knowledge check and mark module complete')}
                             >
                               {isCompleted ? (
                                 <>
@@ -942,23 +1004,72 @@ export const DisciplineCurriculumView: React.FC<DisciplineCurriculumViewProps> =
                               </div>
                             </div>
 
-                            {/* Module Quiz Mode Call-To-Action */}
-                            <div className="pt-3 border-t border-[#1b1f45] flex flex-wrap items-center justify-between gap-3 bg-[#0d1029] p-3 rounded-xl border border-amber-500/20">
+                            {/* Finished Reading Knowledge Check Callout Banner */}
+                            <div className="pt-3 border-t border-[#1b1f45] flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-[#12163a] to-[#0d102b] p-3.5 rounded-xl border border-amber-500/30">
                               <div className="flex items-center gap-2.5">
-                                <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
-                                  <Award className="w-4 h-4" />
+                                <div className="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                                  <BrainCircuit className="w-5 h-5" />
                                 </div>
                                 <div>
                                   <div className="text-xs font-bold text-white flex items-center gap-2">
-                                    <span>{isAr ? 'اختبار فهم واستيعاب الوحدة:' : 'Module Knowledge Check:'}</span>
-                                    {isCompleted && (
-                                      <span className="text-[10px] text-emerald-400 font-mono-code">
-                                        ✓ {isAr ? 'تم الاجتياز بنجاح' : 'Passed'} {modRecord?.score !== undefined ? `(${modRecord.score}%)` : ''}
+                                    <span>{isAr ? 'أنهيت قراءة هذه الوحدة؟ تحقق من استيعابك:' : 'Finished Reading? Quick Knowledge Check:'}</span>
+                                    {isKnowledgeChecked && (
+                                      <span className="text-[10px] text-amber-300 font-mono-code flex items-center gap-1">
+                                        ✓ {isAr ? 'مستوعب بنجاح' : 'Mastered'}
                                       </span>
                                     )}
                                   </div>
                                   <div className="text-[10px] text-slate-400">
-                                    {isAr ? 'اختبر فهمك لمفاهيم الوحدة والمعايير والأكواد بعد الانتهاء من دراستها' : 'Test your comprehension of module topics and applicable codes'}
+                                    {isAr 
+                                      ? 'سؤال تفاعلي واحد فوري يثبت المفاهيم والمعايير في ذهنك مع شرح هندسي مرجعي.'
+                                      : 'Single quick question with instant code rationale and feedback to lock in what you just read.'}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setKnowledgeCheckTarget({
+                                    disciplineId: activeDiscipline.id,
+                                    levelId: activeLevel.levelId,
+                                    module: mod,
+                                    disciplineTitleAr: activeDiscipline.titleAr,
+                                    disciplineTitleEn: activeDiscipline.titleEn
+                                  });
+                                }}
+                                className={`px-3.5 py-2 rounded-lg font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-md ${
+                                  isKnowledgeChecked
+                                    ? 'bg-[#1c2356] hover:bg-[#252f75] text-amber-300 border border-amber-400/40'
+                                    : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 shadow-amber-500/20'
+                                }`}
+                              >
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>
+                                  {isKnowledgeChecked 
+                                    ? (isAr ? 'مراجعة سؤال الفهم' : 'Review Knowledge Check') 
+                                    : (isAr ? 'التحقق السريع من الفهم (سؤال واحد)' : 'Knowledge Check (1 Q)')}
+                                </span>
+                              </button>
+                            </div>
+
+                            {/* Module Quiz Mode Call-To-Action */}
+                            <div className="pt-3 border-t border-[#1b1f45] flex flex-wrap items-center justify-between gap-3 bg-[#0d1029] p-3 rounded-xl border border-sky-500/20">
+                              <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
+                                  <Award className="w-4 h-4" />
+                                </div>
+                                <div>
+                                  <div className="text-xs font-bold text-white flex items-center gap-2">
+                                    <span>{isAr ? 'اختبار تأهيل ASNT الشامل للوحدة:' : 'Comprehensive ASNT Exam for Module:'}</span>
+                                    {isCompleted && (
+                                      <span className="text-[10px] text-emerald-400 font-mono-code">
+                                        ✓ {isAr ? 'تم الاجتياز' : 'Passed'} {modRecord?.score !== undefined ? `(${modRecord.score}%)` : ''}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-[10px] text-slate-400">
+                                    {isAr ? 'اختبار تخصصي متعدد الأسئلة للمستوى القياسي مع تسجيل الدرجة في لوحة المتصدرين' : 'Multi-question exam to earn qualification score and compete on the Global Leaderboard'}
                                   </div>
                                 </div>
                               </div>
@@ -977,13 +1088,13 @@ export const DisciplineCurriculumView: React.FC<DisciplineCurriculumViewProps> =
                                     });
                                   }
                                 }}
-                                className="px-4 py-2 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-md"
+                                className="px-4 py-2 rounded-lg bg-[#141b44] hover:bg-[#1e2763] text-sky-300 hover:text-white border border-sky-500/30 font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-md"
                               >
                                 <HelpCircle className="w-3.5 h-3.5" />
                                 <span>
                                   {isCompleted 
-                                    ? (isAr ? 'إعادة اختبار الوحدة' : 'Retake Module Quiz') 
-                                    : (isAr ? 'ابدأ اختبار الوحدة (Quiz Mode)' : 'Start Module Quiz')}
+                                    ? (isAr ? 'إعادة الاختبار الكامل' : 'Retake Full Exam') 
+                                    : (isAr ? 'بدء الاختبار الكامل (Quiz Mode)' : 'Launch Full Exam')}
                                 </span>
                               </button>
                             </div>
@@ -1183,6 +1294,43 @@ export const DisciplineCurriculumView: React.FC<DisciplineCurriculumViewProps> =
             />
           </div>
         </div>
+      )}
+
+      {/* Single-Question Knowledge Check Pop-up Modal after Reading Module */}
+      {knowledgeCheckTarget && (
+        <KnowledgeCheckModal
+          language={language}
+          isOpen={Boolean(knowledgeCheckTarget)}
+          onClose={() => setKnowledgeCheckTarget(null)}
+          disciplineId={knowledgeCheckTarget.disciplineId}
+          levelId={knowledgeCheckTarget.levelId}
+          module={knowledgeCheckTarget.module}
+          disciplineTitleAr={knowledgeCheckTarget.disciplineTitleAr}
+          disciplineTitleEn={knowledgeCheckTarget.disciplineTitleEn}
+          onLaunchFullQuiz={(dId, lId, mId) => {
+            setKnowledgeCheckTarget(null);
+            if (onLaunchQuiz) {
+              onLaunchQuiz(dId, lId, mId, { 
+                ar: knowledgeCheckTarget.module.titleAr, 
+                en: knowledgeCheckTarget.module.titleEn 
+              });
+            } else {
+              setModalQuizTarget({
+                disciplineId: dId,
+                levelId: lId as any,
+                moduleId: mId,
+                moduleTitle: { 
+                  ar: knowledgeCheckTarget.module.titleAr, 
+                  en: knowledgeCheckTarget.module.titleEn 
+                }
+              });
+            }
+          }}
+          onModuleCompleted={() => {
+            setCompletedModules(getCompletedModules());
+            setKnowledgeChecksMap(getStoredKnowledgeChecks());
+          }}
+        />
       )}
     </div>
   );
