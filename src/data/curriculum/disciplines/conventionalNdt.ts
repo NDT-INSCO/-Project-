@@ -106,6 +106,32 @@ export const conventionalNdtDiscipline: EngineeringDiscipline = {
             'Grasp the rigorous scientific foundation of all NDT phenomena without reliance on rote memorization',
             'Calculate radiation shielding thicknesses and occupational safety boundaries for industrial isotopes'
           ]
+        },
+        {
+          id: 'mod_c_acad_vt',
+          titleAr: 'الوحدة الأكاديمية VT: قياس هندسة الوصلة وقبولها',
+          titleEn: 'Academic Module VT: Weld Geometry Measurement & Acceptance',
+          duration: '15 ساعة محاضرات وتمارين',
+          topicsAr: [
+            'هندسة الوصلة: Hi-Lo، undercut، cap height، toe angle',
+            'أدوات القياس: Cambridge gauge، Hi-Lo gauge، مقياس عمق',
+            'توثيق القياس: وحدات، دقة، رقم الأداة، مرجع البند',
+            'قرار القبول وفق الكود (ASME/AWS/API) ونوع الخدمة'
+          ],
+          topicsEn: [
+            'Joint geometry: Hi-Lo, undercut, cap height, toe angle',
+            'Measurement tools: Cambridge gauge, Hi-Lo gauge, depth gauge',
+            'Documentation: units, resolution, gauge ID, clause reference',
+            'Acceptance decision per code (ASME/AWS/API) and service type'
+          ],
+          learningOutcomesAr: [
+            'قياس هندسة الوصلة وتوثيقها',
+            'اتخاذ قرار قبول وفق الكود'
+          ],
+          learningOutcomesEn: [
+            'Measure and document joint geometry',
+            'Make an acceptance decision per code'
+          ]
         }
       ],
       keyFormulas: [

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { 
   BookOpen, 
+  Map,
   HelpCircle, 
   Flame, 
   Activity, 
@@ -31,15 +32,17 @@ import { CurriculumLevelProgressTracker } from './academy/CurriculumLevelProgres
 import { SemanticSearchBar } from './academy/SemanticSearchBar';
 import { CurriculumCertificatesView } from './academy/CurriculumCertificatesView';
 import { GlobalLeaderboard } from './academy/GlobalLeaderboard';
+import { AcademyCompletionMap } from './academy/AcademyCompletionMap';
+import { AcademyKnowledgeLibrary } from './academy/AcademyKnowledgeLibrary';
 
 interface EducationalAcademyProps {
   language: Language;
-  initialSubTab?: 'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'leaderboard';
+  initialSubTab?: 'knowledge' | 'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'leaderboard' | 'completion_map';
 }
 
 export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language, initialSubTab }) => {
   const isAr = language === 'ar';
-  const [activeSubTab, setActiveSubTab] = useState<'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'leaderboard'>(
+  const [activeSubTab, setActiveSubTab] = useState<'knowledge' | 'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'leaderboard' | 'completion_map'>(
     initialSubTab || 'curriculum'
   );
 
@@ -245,7 +248,20 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
         {/* Unified Practical Category Hubs (Prevents multi-line wrapping & page displacement) */}
         <div className="space-y-4 mb-8">
           {/* Main 5 Unified Functional Hubs */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 bg-[#0c0e22] p-1.5 rounded-2xl border-2 border-[#202755] shadow-xl max-w-6xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 bg-[#0c0e22] p-1.5 rounded-2xl border-2 border-[#202755] shadow-xl max-w-6xl mx-auto">
+            {/* Hub 0: Knowledge Library */}
+            <button
+              onClick={() => setActiveSubTab('knowledge')}
+              className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                activeSubTab === 'knowledge'
+                  ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.01]'
+                  : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'
+              }`}
+            >
+              <BookOpen className={`w-4 h-4 ${activeSubTab === 'knowledge' ? 'text-slate-950' : 'text-amber-400'}`} />
+              <span className="truncate">{isAr ? 'مكتبة الدروس' : 'Knowledge Library'}</span>
+            </button>
+
             {/* Hub 1: Comprehensive Curricula */}
             <button
               onClick={() => setActiveSubTab('curriculum')}
@@ -305,12 +321,12 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             {/* Hub 5: Codes, Methods & AI Professor */}
             <button
               onClick={() => {
-                if (!['standards', 'methods', 'quiz', 'ask_ai', 'video_gen', 'leaderboard'].includes(activeSubTab)) {
+                if (!['standards', 'methods', 'quiz', 'ask_ai', 'video_gen', 'leaderboard', 'completion_map'].includes(activeSubTab)) {
                   setActiveSubTab('standards');
                 }
               }}
               className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                ['standards', 'methods', 'quiz', 'ask_ai', 'video_gen', 'leaderboard'].includes(activeSubTab)
+                ['standards', 'methods', 'quiz', 'ask_ai', 'video_gen', 'leaderboard', 'completion_map'].includes(activeSubTab)
                   ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.01]'
                   : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'
               }`}
@@ -349,7 +365,7 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
           )}
 
           {/* Child Sub-Segment Pills for Hub 5: Knowledge, Exams & AI */}
-          {['standards', 'methods', 'quiz', 'ask_ai', 'video_gen', 'leaderboard'].includes(activeSubTab) && (
+          {['standards', 'methods', 'quiz', 'ask_ai', 'video_gen', 'leaderboard', 'completion_map'].includes(activeSubTab) && (
             <div className="flex flex-wrap items-center justify-center gap-1.5 animate-fadeIn max-w-4xl mx-auto">
               <button
                 onClick={() => setActiveSubTab('standards')}
@@ -397,6 +413,18 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               >
                 <Trophy className={`w-3.5 h-3.5 ${activeSubTab === 'leaderboard' ? 'text-slate-950' : 'text-amber-400'}`} />
                 <span>{isAr ? 'لوحة المتصدرين' : 'Leaderboard'}</span>
+              </button>
+
+              <button
+                onClick={() => setActiveSubTab('completion_map')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'completion_map'
+                    ? 'bg-amber-500 text-slate-950 font-black shadow-md'
+                    : 'bg-[#10132b] text-sky-300 hover:text-white border border-sky-400/40'
+                }`}
+              >
+                <Map className={`w-3.5 h-3.5 ${activeSubTab === 'completion_map' ? 'text-slate-950' : 'text-sky-400'}`} />
+                <span>{isAr ? 'خريطة الاستكمال' : 'Completion Map'}</span>
               </button>
 
               <button
@@ -864,6 +892,19 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             onNavigateToDiscipline={(disciplineId) => {
               handleNavigateToCurriculumModule(disciplineId, 0);
             }}
+          />
+        )}
+
+        {/* Sub-Tab 5C: Academy Completion Map */}
+        {activeSubTab === 'completion_map' && (
+          <AcademyCompletionMap language={language} />
+        )}
+
+        {/* Sub-Tab 0: Knowledge Library */}
+        {activeSubTab === 'knowledge' && (
+          <AcademyKnowledgeLibrary
+            language={language}
+            onCurriculum={(disciplineId) => handleNavigateToCurriculumModule(disciplineId, 0)}
           />
         )}
 
