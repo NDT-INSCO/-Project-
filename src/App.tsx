@@ -269,7 +269,7 @@ export default function App() {
                   ? 'pwht_curve'
                   : currentTab === 'defects'
                   ? 'defects'
-                  : 'curriculum'
+                  : 'knowledge'
               }
             />
           </div>

@@ -24,19 +24,20 @@ import { Language, EducationalDefect, QuizQuestion } from '../types';
 import { NDT_METHODS, EDUCATIONAL_DEFECTS, STANDARDS_LIBRARY, SAMPLE_QUIZZES } from '../data/inscoData';
 import { IndustrialVideoGen } from './IndustrialVideoGen';
 import { DisciplineCurriculumView } from './academy/DisciplineCurriculumView';
+import { AcademyKnowledgeLibrary } from './academy/AcademyKnowledgeLibrary';
 import { InteractiveWorkshops } from './academy/InteractiveWorkshops';
 import { CurriculumQuizEngine } from './academy/CurriculumQuizEngine';
 import { CurriculumLevelProgressTracker } from './academy/CurriculumLevelProgressTracker';
 
 interface EducationalAcademyProps {
   language: Language;
-  initialSubTab?: 'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen';
+  initialSubTab?: 'knowledge' | 'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen';
 }
 
 export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language, initialSubTab }) => {
   const isAr = language === 'ar';
-  const [activeSubTab, setActiveSubTab] = useState<'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen'>(
-    initialSubTab || 'curriculum'
+  const [activeSubTab, setActiveSubTab] = useState<'knowledge' | 'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen'>(
+    initialSubTab || 'knowledge'
   );
 
   // Target Module/Discipline when navigating to Quiz Mode from Curriculum
@@ -224,15 +225,23 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
           </h2>
           <p className="text-slate-300 text-sm sm:text-base mt-3">
             {isAr
-              ? 'أدوات محاكاة تفاعلية لفحص عيوب اللحام، محاكي منحنيات المعالجة الحرارية PWHT، بنك أسئلة وتأهيل لاختبارات ASNT، ومستشار أكاديمي مدعوم بالذكاء الاصطناعي.'
-              : 'Interactive weld defect simulator, PWHT thermal curve calculator, ASNT practice exams, and ASME/API code explorer.'}
+              ? 'تعلّم الأساس العلمي للفحص واللحام والمعادن والتآكل والجودة وسلامة الأصول، عبر دروس ومراجع ومسارات تعليمية ومحاكاة وأسئلة تدريبية. المحتوى للتعلّم ولا يمنح اعتماداً مهنياً.'
+              : 'Study the science of inspection, welding, metallurgy, corrosion, quality and asset integrity through lessons, references, curricula, simulations and practice checks. Educational content does not confer professional certification.'}
           </p>
         </div>
+
+        <p className="mb-6 rounded-xl border border-amber-500/25 bg-amber-500/5 p-4 text-xs sm:text-sm text-amber-100 leading-relaxed">
+          {isAr ? 'تنبيه: المناهج والساعات والاختبارات والمحاكاة إرشادية للتعلّم الذاتي، ولا تمنح شهادة ASNT أو API أو أي اعتماد مهني. يلزم التحقق من متطلبات الجهة المانحة والتدريب والخبرة والاختبارات والتفويض، ومراجعة الكود والإجراء المعتمد قبل أي تطبيق ميداني.' : 'Notice: curricula, hours, quizzes and simulations support self-study and do not award ASNT, API or other professional certification. Verify the applicable training, experience, examination and authorisation requirements and approved codes and procedures before field use.'}
+        </p>
 
         {/* Unified Practical Category Hubs (Prevents multi-line wrapping & page displacement) */}
         <div className="space-y-4 mb-8">
           {/* Main 4 Unified Functional Hubs */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-[#0c0e22] p-1.5 rounded-2xl border-2 border-[#202755] shadow-xl max-w-5xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 bg-[#0c0e22] p-1.5 rounded-2xl border-2 border-[#202755] shadow-xl max-w-5xl mx-auto">
+            <button onClick={() => setActiveSubTab('knowledge')} aria-pressed={activeSubTab === 'knowledge'} className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all ${activeSubTab === 'knowledge' ? 'bg-amber-500 text-slate-950 shadow-lg' : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'}`}>
+              <BookOpen className="w-4 h-4 shrink-0" />
+              <span>{isAr ? 'مكتبة الدروس والمراجع' : 'Lessons & References'}</span>
+            </button>
             {/* Hub 1: Comprehensive Curricula */}
             <button
               onClick={() => setActiveSubTab('curriculum')}
@@ -388,8 +397,15 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
           )}
         </div>
 
+        {activeSubTab === 'knowledge' && (
+          <AcademyKnowledgeLibrary language={language} onCurriculum={disciplineId => {
+            setCurriculumTarget({ disciplineId, levelIdx: 0 });
+            setActiveSubTab('curriculum');
+          }} />
+        )}
+
         {/* Persistent Curriculum Level Progress Tracking HUD */}
-        <div className="mb-8">
+        <div className="mb-8" hidden={activeSubTab === 'knowledge'}>
           <CurriculumLevelProgressTracker
             language={language}
             onNavigateToModule={(dId, lIdx, mId) => handleNavigateToCurriculumModule(dId, lIdx, mId)}
@@ -751,8 +767,8 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               </h3>
               <p className="text-xs sm:text-sm text-slate-400 mt-1">
                 {isAr
-                  ? 'جميع إجراءات التفتيش والاختبار بشركة إنسكو محررة وفقاً لأحدث إصدارات هذه الأكواد العالمية.'
-                  : 'All INSCO method procedures and acceptance criteria are issued per these international standards.'}
+                  ? 'دليل تعريفي وليس نصوص المواصفات. راجع النسخة المرخصة وإصدار العقد والإجراء المعتمد؛ لا تفترض أن أحدث إصدار هو الإصدار المطلوب للمشروع.'
+                  : 'An introductory directory, not the standards themselves. Consult licensed copies, the contract edition and approved procedures; the latest edition is not necessarily the project edition.'}
               </p>
             </div>
 
