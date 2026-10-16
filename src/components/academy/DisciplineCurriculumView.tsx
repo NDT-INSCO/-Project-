@@ -1162,12 +1162,7 @@ export const DisciplineCurriculumView: React.FC<DisciplineCurriculumViewProps> =
             <button
               onClick={() => {
                 setModalQuizTarget(null);
-                if (typeof window !== 'undefined') {
-                  try {
-                    const stored = localStorage.getItem('insco_academy_passed_quizzes');
-                    if (stored) setPassedModules(JSON.parse(stored));
-                  } catch (e) {}
-                }
+                setCompletedModules(getCompletedModules());
               }}
               className="absolute top-4 end-4 w-9 h-9 rounded-full bg-[#181d45] hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center transition cursor-pointer z-20 border border-[#2c3775]"
               title={isAr ? 'إغلاق الاختبار' : 'Close Quiz'}
@@ -1183,12 +1178,7 @@ export const DisciplineCurriculumView: React.FC<DisciplineCurriculumViewProps> =
               initialModuleTitle={modalQuizTarget.moduleTitle}
               onCloseTargetedQuiz={() => {
                 setModalQuizTarget(null);
-                if (typeof window !== 'undefined') {
-                  try {
-                    const stored = localStorage.getItem('insco_academy_passed_quizzes');
-                    if (stored) setPassedModules(JSON.parse(stored));
-                  } catch (e) {}
-                }
+                setCompletedModules(getCompletedModules());
               }}
             />
           </div>
