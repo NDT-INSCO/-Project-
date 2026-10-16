@@ -42,6 +42,10 @@ export const IndustrialVideoGen: React.FC<IndustrialVideoGenProps> = ({ language
         }),
       });
 
+      if (!response.ok) {
+        throw new Error(`Static host response: ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (data.operationName) {
@@ -52,15 +56,20 @@ export const IndustrialVideoGen: React.FC<IndustrialVideoGenProps> = ({ language
           // Set illustrative industrial simulation video
           setVideoUrl('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4');
           setStatusMessage(isAr ? 'تم إنشاء محاكاة الفيديو بنجاح!' : 'Video rendered successfully!');
-        }, 4000);
+        }, 3000);
       } else {
         setIsGenerating(false);
         setStatusMessage(data.message || 'Generation complete');
       }
     } catch (err: any) {
-      console.error('Video generation error:', err);
-      setIsGenerating(false);
-      setStatusMessage(isAr ? 'حدث خطأ أثناء إنشاء الفيديو.' : 'Error generating video.');
+      // Graceful fallback for GitHub Pages and static deployments where /api backend is not hosted
+      console.info('Switching to client simulation demo mode (GitHub Pages / Static host):', err);
+      setStatusMessage(isAr ? 'جاري تجهيز محاكاة الفيديو التوضيحية (وضع GitHub Pages المباشر)...' : 'Preparing interactive simulation demo (GitHub Pages mode)...');
+      setTimeout(() => {
+        setIsGenerating(false);
+        setVideoUrl('https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4');
+        setStatusMessage(isAr ? 'تم تشغيل المحاكاة بنجاح في بيئة الاستضافة الثابتة (GitHub Pages)!' : 'Simulation demo loaded successfully on static hosting (GitHub Pages)!');
+      }, 1500);
     }
   };
 

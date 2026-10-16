@@ -26,7 +26,11 @@ const VALID_TABS = [
   'faqs',
   'ai-platform',
   'messenger',
-  'academy'
+  'academy',
+  'workshops',
+  'simulation',
+  'pwht',
+  'defects'
 ];
 
 export default function App() {
@@ -254,9 +258,20 @@ export default function App() {
           </div>
         )}
 
-        {currentTab === 'academy' && (
+        {['academy', 'workshops', 'simulation', 'pwht', 'defects'].includes(currentTab) && (
           <div className="pt-4">
-            <EducationalAcademy language={language} />
+            <EducationalAcademy 
+              language={language} 
+              initialSubTab={
+                currentTab === 'workshops' || currentTab === 'simulation'
+                  ? 'workshops'
+                  : currentTab === 'pwht'
+                  ? 'pwht_curve'
+                  : currentTab === 'defects'
+                  ? 'defects'
+                  : 'curriculum'
+              }
+            />
           </div>
         )}
       </main>

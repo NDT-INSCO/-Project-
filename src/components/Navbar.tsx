@@ -21,7 +21,9 @@ import {
   Bot, 
   GraduationCap,
   Sparkles,
-  Layers
+  Layers,
+  Wrench,
+  Flame
 } from 'lucide-react';
 import { Language } from '../types';
 import { COMPANY_DETAILS } from '../data/inscoData';
@@ -47,11 +49,13 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [servicesMenuOpen, setServicesMenuOpen] = useState(false);
+  const [academyMenuOpen, setAcademyMenuOpen] = useState(false);
   const [aiMenuOpen, setAiMenuOpen] = useState(false);
   const isAr = language === 'ar';
   const { userProfile, currentRole } = useAuth();
 
   const servicesRef = useRef<HTMLDivElement>(null);
+  const academyRef = useRef<HTMLDivElement>(null);
   const aiRef = useRef<HTMLDivElement>(null);
 
   // Close dropdowns when clicking outside
@@ -59,6 +63,9 @@ export const Navbar: React.FC<NavbarProps> = ({
     const handleClickOutside = (e: MouseEvent) => {
       if (servicesRef.current && !servicesRef.current.contains(e.target as Node)) {
         setServicesMenuOpen(false);
+      }
+      if (academyRef.current && !academyRef.current.contains(e.target as Node)) {
+        setAcademyMenuOpen(false);
       }
       if (aiRef.current && !aiRef.current.contains(e.target as Node)) {
         setAiMenuOpen(false);
@@ -69,6 +76,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   }, []);
 
   const isServicesActive = ['services', 'projects', 'accreditations'].includes(currentTab);
+  const isAcademyActive = ['academy', 'workshops', 'simulation', 'pwht', 'defects'].includes(currentTab);
   const isAiActive = ['ai-platform', 'messenger'].includes(currentTab);
 
   return (
@@ -256,21 +264,88 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </div>
 
-            {/* 4. Academy & Labs */}
-            <button
-              onClick={() => {
-                setCurrentTab('academy');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className={`flex items-center gap-1.5 px-2.5 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium transition cursor-pointer whitespace-nowrap ${
-                currentTab === 'academy'
-                  ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20'
-                  : 'text-amber-300 hover:bg-[#1b2046] hover:text-white border border-amber-500/20'
-              }`}
+            {/* 4. Academy & Interactive Workshops Dropdown */}
+            <div 
+              ref={academyRef} 
+              className="relative"
+              onMouseEnter={() => setAcademyMenuOpen(true)}
+              onMouseLeave={() => setAcademyMenuOpen(false)}
             >
-              <GraduationCap className={`w-4 h-4 ${currentTab === 'academy' ? 'text-slate-950' : 'text-emerald-400'}`} />
-              <span>{isAr ? 'الأكاديمية والورش' : 'NDT Academy'}</span>
-            </button>
+              <button
+                onClick={() => {
+                  if (!isAcademyActive) setCurrentTab('academy');
+                  setAcademyMenuOpen(!academyMenuOpen);
+                }}
+                className={`flex items-center gap-1.5 px-2.5 xl:px-3 py-2 rounded-lg text-xs xl:text-sm font-medium transition cursor-pointer whitespace-nowrap ${
+                  isAcademyActive
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20'
+                    : 'text-amber-300 hover:bg-[#1b2046] hover:text-white border border-amber-500/20'
+                }`}
+              >
+                <GraduationCap className={`w-4 h-4 ${isAcademyActive ? 'text-slate-950' : 'text-emerald-400'}`} />
+                <span>{isAr ? 'الأكاديمية والورش والمحاكاة' : 'Academy & Simulators'}</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${academyMenuOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Academy Dropdown */}
+              {academyMenuOpen && (
+                <div className="absolute top-full start-0 mt-1 w-64 rounded-2xl bg-[#0c0e22]/98 backdrop-blur-xl border border-amber-500/30 shadow-2xl p-2 z-50 flex flex-col gap-1 animate-fadeIn">
+                  <button
+                    onClick={() => {
+                      setCurrentTab('academy');
+                      setAcademyMenuOpen(false);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={`flex items-center gap-2 p-2 rounded-xl text-xs font-semibold text-start transition cursor-pointer ${
+                      currentTab === 'academy' ? 'bg-amber-500/20 text-amber-300 border border-amber-400/40' : 'text-slate-200 hover:bg-[#191d3d]'
+                    }`}
+                  >
+                    <GraduationCap className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                    <div>
+                      <span className="block font-bold">{isAr ? 'المناهج والمسارات (8 مجالات)' : 'Curricula (8 Disciplines)'}</span>
+                      <span className="text-[10px] text-slate-400">{isAr ? 'من الأساس الجامعي للمستوى 2 و3' : 'Academic, Level II & Level III'}</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setCurrentTab('workshops');
+                      setAcademyMenuOpen(false);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={`flex items-center gap-2 p-2 rounded-xl text-xs font-semibold text-start transition cursor-pointer ${
+                      currentTab === 'workshops' || currentTab === 'simulation' ? 'bg-amber-500/20 text-amber-300 border border-amber-400/40' : 'text-slate-200 hover:bg-[#191d3d]'
+                    }`}
+                  >
+                    <Wrench className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="block font-bold">{isAr ? 'معامل المحاكاة الحية' : 'Live Interactive Labs'}</span>
+                        <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">6 ورش</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400">{isAr ? 'أجهزة UT، الأشعة RT، والمغناطيسية' : 'A-Scan UT, RT, Darkroom, DFT'}</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setCurrentTab('pwht');
+                      setAcademyMenuOpen(false);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={`flex items-center gap-2 p-2 rounded-xl text-xs font-semibold text-start transition cursor-pointer ${
+                      currentTab === 'pwht' || currentTab === 'defects' ? 'bg-amber-500/20 text-amber-300 border border-amber-400/40' : 'text-slate-200 hover:bg-[#191d3d]'
+                    }`}
+                  >
+                    <Flame className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                    <div>
+                      <span className="block font-bold">{isAr ? 'محاكيات عيوب اللحام و PWHT' : 'Defect & PWHT Simulators'}</span>
+                      <span className="text-[10px] text-slate-400">{isAr ? 'منحنيات ASME الحرارية وتشخيص العيوب' : 'ASME thermal curves & diagnostics'}</span>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* 5. Merged Practical Hub: Smart AI Consultation & RFQ Messenger */}
             <div 
@@ -547,7 +622,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             </span>
 
             {[
-              { id: 'academy', labelAr: 'الأكاديمية التعليمية والورش (8 مجالات)', labelEn: 'NDT Academy & Labs', icon: GraduationCap, highlight: true },
+              { id: 'academy', labelAr: 'المناهج التعليمية الشاملة (8 مجالات)', labelEn: 'Curricula (8 Disciplines)', icon: GraduationCap, highlight: true },
+              { id: 'workshops', labelAr: 'معامل المحاكاة الحية (6 ورش تفاعلية)', labelEn: 'Live Simulation Labs (6 Workbenches)', icon: Wrench, highlight: true },
+              { id: 'pwht', labelAr: 'محاكيات عيوب اللحام ومنحنيات PWHT', labelEn: 'Defect & PWHT Simulator', icon: Flame, highlight: true },
               { id: 'ai-platform', labelAr: 'منصة الرد الذكية التفاعلية', labelEn: 'AI Client Platform', icon: Bot, highlight: true },
               { id: 'messenger', labelAr: 'ماسنجر طلب الخدمات و RFQ', labelEn: 'Service Messenger', icon: Send, highlight: true },
               { id: 'faqs', labelAr: 'الأسئلة الشائعة الفنية', labelEn: 'Technical FAQs', icon: HelpCircle }

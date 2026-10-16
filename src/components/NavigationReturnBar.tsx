@@ -53,10 +53,34 @@ const TAB_TITLES: Record<string, { ar: string; en: string; categoryAr: string; c
     categoryEn: 'RFQs & Mobilization'
   },
   academy: {
-    ar: 'الأكاديمية التعليمية التفاعلية ومحاكي عيوب اللحام والمعالجة الحرارية',
-    en: 'Educational Academy, Defect Simulator & PWHT Curves',
-    categoryAr: 'التعليم والتدريب',
-    categoryEn: 'Training & Academy'
+    ar: 'المدرسة والأكاديمية الهندسية التفاعلية (المناهج الأكاديمية والمستوى 2 و3)',
+    en: 'Interactive Engineering Academy (Academic, Level II & Level III)',
+    categoryAr: 'التعليم والتدريب المتقدم',
+    categoryEn: 'Training & Advanced Academy'
+  },
+  workshops: {
+    ar: 'معامل وورش المحاكاة الحية التفاعلية (6 مختبرات عملية)',
+    en: 'Interactive Simulation Labs & Workbenches (6 Live Simulators)',
+    categoryAr: 'المحاكاة الهندسية',
+    categoryEn: 'Engineering Simulation'
+  },
+  simulation: {
+    ar: 'المختبرات الافتراضية ومحاكيات الفحص والمعايرة الحية',
+    en: 'Virtual Labs & Live Calibration Simulators',
+    categoryAr: 'المحاكاة الهندسية',
+    categoryEn: 'Engineering Simulation'
+  },
+  pwht: {
+    ar: 'محاكي منحنيات المعالجة الحرارية بعد اللحام PWHT الحية',
+    en: 'Live Post Weld Heat Treatment (PWHT) Thermal Cycle Simulator',
+    categoryAr: 'المحاكاة الحرارية',
+    categoryEn: 'Thermal Simulation'
+  },
+  defects: {
+    ar: 'محاكي تشخيص عيوب اللحام والميتالورجيا الحية',
+    en: 'Live Weld Defect Diagnostic & Metallurgical Simulator',
+    categoryAr: 'محاكاة الجودة',
+    categoryEn: 'Quality Simulation'
   }
 };
 

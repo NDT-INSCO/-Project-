@@ -138,26 +138,51 @@ export const UnifiedQuickDock: React.FC<UnifiedQuickDockProps> = ({
             </button>
           </div>
 
-          {/* Practical Group 4: NDT Academy & Interactive Workshops */}
-          <button
-            onClick={() => {
-              onNavigateTab('academy');
-              setIsExpanded(false);
-            }}
-            className={`flex items-center gap-2.5 p-2 rounded-xl text-xs font-bold transition cursor-pointer ${
-              currentTab === 'academy'
-                ? 'bg-amber-500/20 border border-amber-400 text-amber-300'
-                : 'bg-[#151a3d] hover:bg-[#1d2454] border border-[#273273] text-slate-200'
-            }`}
-          >
-            <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
-              <GraduationCap className="w-4 h-4" />
-            </div>
-            <div className="text-start leading-tight">
-              <span className="font-bold">{isAr ? 'الأكاديمية والورش والمعامل' : 'NDT Academy & Labs'}</span>
-              <span className="block text-[10px] text-slate-400">{isAr ? 'المناهج الـ 8 ومعامل المحاكاة الـ 6' : '8 Curricula & 6 Interactive Labs'}</span>
-            </div>
-          </button>
+          {/* Practical Group 4: NDT Academy & Interactive Simulation Labs */}
+          <div className="grid grid-cols-2 gap-1.5">
+            <button
+              onClick={() => {
+                onNavigateTab('academy');
+                setIsExpanded(false);
+              }}
+              className={`flex items-center gap-2 p-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                currentTab === 'academy'
+                  ? 'bg-amber-500/20 border border-amber-400 text-amber-300'
+                  : 'bg-[#151a3d] hover:bg-[#1d2454] border border-[#273273] text-slate-200'
+              }`}
+            >
+              <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
+                <GraduationCap className="w-3.5 h-3.5" />
+              </div>
+              <div className="text-start leading-tight">
+                <span className="block font-bold">{isAr ? 'المناهج الـ 8' : '8 Curricula'}</span>
+                <span className="text-[9px] text-slate-400">{isAr ? 'أساس، ليفيل 2، 3' : 'Acad, L2, L3'}</span>
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                onNavigateTab('workshops');
+                setIsExpanded(false);
+              }}
+              className={`flex items-center gap-2 p-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                currentTab === 'workshops' || currentTab === 'simulation'
+                  ? 'bg-amber-500/20 border border-amber-400 text-amber-300'
+                  : 'bg-[#151a3d] hover:bg-[#1d2454] border border-[#273273] text-slate-200'
+              }`}
+            >
+              <div className="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0">
+                <Wrench className="w-3.5 h-3.5" />
+              </div>
+              <div className="text-start leading-tight">
+                <div className="flex items-center gap-1">
+                  <span className="block font-bold">{isAr ? 'المحاكاة الحية' : 'Live Labs'}</span>
+                  <span className="text-[8px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-400 font-bold">6</span>
+                </div>
+                <span className="text-[9px] text-slate-400">{isAr ? 'ورش واختبارات' : 'Simulators'}</span>
+              </div>
+            </button>
+          </div>
 
           {/* Language Selector in Dock */}
           {onLanguageChange && (

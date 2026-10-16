@@ -25,14 +25,57 @@ import { NDT_METHODS, EDUCATIONAL_DEFECTS, STANDARDS_LIBRARY, SAMPLE_QUIZZES } f
 import { IndustrialVideoGen } from './IndustrialVideoGen';
 import { DisciplineCurriculumView } from './academy/DisciplineCurriculumView';
 import { InteractiveWorkshops } from './academy/InteractiveWorkshops';
+import { CurriculumQuizEngine } from './academy/CurriculumQuizEngine';
+import { CurriculumLevelProgressTracker } from './academy/CurriculumLevelProgressTracker';
 
 interface EducationalAcademyProps {
   language: Language;
+  initialSubTab?: 'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen';
 }
 
-export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language }) => {
+export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language, initialSubTab }) => {
   const isAr = language === 'ar';
-  const [activeSubTab, setActiveSubTab] = useState<'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen'>('curriculum');
+  const [activeSubTab, setActiveSubTab] = useState<'curriculum' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen'>(
+    initialSubTab || 'curriculum'
+  );
+
+  // Target Module/Discipline when navigating to Quiz Mode from Curriculum
+  const [quizTarget, setQuizTarget] = useState<{
+    disciplineId?: string;
+    levelId?: 'academic' | 'level1' | 'level2' | 'level3';
+    moduleId?: string;
+    moduleTitle?: { ar: string; en: string };
+  } | null>(null);
+
+  // Target Module/Level when navigating from the Level Progress Tracker
+  const [curriculumTarget, setCurriculumTarget] = useState<{
+    disciplineId?: string;
+    levelIdx?: number;
+    moduleId?: string;
+  }>({});
+
+  const handleNavigateToCurriculumModule = (disciplineId: string, levelIdx: number, moduleId?: string) => {
+    setCurriculumTarget({ disciplineId, levelIdx, moduleId });
+    setActiveSubTab('curriculum');
+    window.scrollTo({ top: 380, behavior: 'smooth' });
+  };
+
+  const handleLaunchModuleQuiz = (
+    disciplineId: string,
+    levelId?: 'academic' | 'level1' | 'level2' | 'level3',
+    moduleId?: string,
+    moduleTitle?: { ar: string; en: string }
+  ) => {
+    setQuizTarget({ disciplineId, levelId, moduleId, moduleTitle });
+    setActiveSubTab('quiz');
+    window.scrollTo({ top: 350, behavior: 'smooth' });
+  };
+
+  React.useEffect(() => {
+    if (initialSubTab) {
+      setActiveSubTab(initialSubTab);
+    }
+  }, [initialSubTab]);
 
   // Defect Simulator State
   const [selectedDefect, setSelectedDefect] = useState<EducationalDefect>(EDUCATIONAL_DEFECTS[0]);
@@ -345,11 +388,24 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
           )}
         </div>
 
+        {/* Persistent Curriculum Level Progress Tracking HUD */}
+        <div className="mb-8">
+          <CurriculumLevelProgressTracker
+            language={language}
+            onNavigateToModule={(dId, lIdx, mId) => handleNavigateToCurriculumModule(dId, lIdx, mId)}
+            onLaunchQuiz={(dId, lId, mId, mTitle) => handleLaunchModuleQuiz(dId, lId as any, mId, mTitle)}
+          />
+        </div>
+
         {/* Sub-Tab 0A: All Disciplines & Career Roadmaps Curriculum */}
         {activeSubTab === 'curriculum' && (
           <DisciplineCurriculumView
             language={language}
+            initialDisciplineId={curriculumTarget.disciplineId}
+            initialLevelIdx={curriculumTarget.levelIdx}
+            initialTargetModuleId={curriculumTarget.moduleId}
             onSelectWorkshop={() => setActiveSubTab('workshops')}
+            onLaunchQuiz={(dId, lId, mId, mTitle) => handleLaunchModuleQuiz(dId, lId as any, mId, mTitle)}
           />
         )}
 
@@ -718,98 +774,22 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
           </div>
         )}
 
-        {/* Sub-Tab 5: Interactive Quiz & Certification Exam */}
+        {/* Sub-Tab 5: Interactive Quiz & Certification Exam Engine */}
         {activeSubTab === 'quiz' && (
-          <div className="max-w-3xl mx-auto bg-[#10132b] p-6 sm:p-8 rounded-2xl border-2 border-amber-500/40 shadow-2xl">
-            {!quizCompleted ? (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between pb-3 border-b border-[#212752]">
-                  <span className="text-xs font-bold text-amber-400 uppercase font-mono-code">
-                    {isAr ? `السؤال ${currentQuizIndex + 1} من ${quizQuestions.length}` : `Question ${currentQuizIndex + 1} of ${quizQuestions.length}`}
-                  </span>
-                  <span className="text-xs font-mono-code text-slate-400">
-                    {isAr ? `النتيجة الحالية: ${score}` : `Current Score: ${score}`}
-                  </span>
-                </div>
-
-                <h3 className="text-base sm:text-lg font-bold text-white leading-relaxed">
-                  {isAr ? quizQuestions[currentQuizIndex].question.ar : quizQuestions[currentQuizIndex].question.en}
-                </h3>
-
-                <div className="space-y-2.5">
-                  {(isAr ? quizQuestions[currentQuizIndex].options.ar : quizQuestions[currentQuizIndex].options.en).map((opt, optIdx) => {
-                    const isSelected = selectedOption === optIdx;
-                    const isCorrect = optIdx === quizQuestions[currentQuizIndex].correctIndex;
-                    let btnStyle = 'bg-[#141838] hover:bg-[#1a2048] border-[#252c61] text-slate-200';
-
-                    if (showAnswer) {
-                      if (isCorrect) {
-                        btnStyle = 'bg-emerald-600/30 border-emerald-400 text-emerald-200 font-bold';
-                      } else if (isSelected) {
-                        btnStyle = 'bg-rose-600/30 border-rose-400 text-rose-200';
-                      }
-                    }
-
-                    return (
-                      <button
-                        key={optIdx}
-                        disabled={showAnswer}
-                        onClick={() => handleQuizAnswer(optIdx)}
-                        className={`w-full text-start p-3.5 rounded-xl border text-xs sm:text-sm transition flex items-center justify-between cursor-pointer ${btnStyle}`}
-                      >
-                        <span>{opt}</span>
-                        {showAnswer && isCorrect && <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />}
-                        {showAnswer && isSelected && !isCorrect && <XCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {showAnswer && (
-                  <div className="bg-[#0b0d1e] p-4 rounded-xl border border-amber-500/30 space-y-2 animate-fadeIn">
-                    <div className="text-xs font-bold text-amber-400 flex items-center gap-1.5">
-                      <Info className="w-4 h-4" />
-                      <span>{isAr ? 'التفسير الهندسي من مهندسي إنسكو:' : 'Engineering Explanation:'}</span>
-                    </div>
-                    <p className="text-xs text-slate-300 leading-relaxed">
-                      {isAr ? quizQuestions[currentQuizIndex].explanation.ar : quizQuestions[currentQuizIndex].explanation.en}
-                    </p>
-                    <div className="pt-2">
-                      <button
-                        onClick={handleNextQuiz}
-                        className="py-2 px-5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs cursor-pointer"
-                      >
-                        {currentQuizIndex < quizQuestions.length - 1
-                          ? (isAr ? 'السؤال التالي' : 'Next Question')
-                          : (isAr ? 'عرض النتيجة النهائية' : 'View Final Score')}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-8 space-y-4">
-                <div className="w-16 h-16 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center mx-auto border-2 border-amber-400">
-                  <Award className="w-8 h-8" />
-                </div>
-                <h3 className="text-2xl font-black text-white">
-                  {isAr ? 'اكتمل الاختبار الهندسي بنجاح!' : 'Quiz Completed!'}
-                </h3>
-                <p className="text-slate-300 text-sm">
-                  {isAr
-                    ? `لقد حصلت على ${score} من إجمالي ${quizQuestions.length} أسئلة.`
-                    : `You scored ${score} out of ${quizQuestions.length} questions.`}
-                </p>
-                <button
-                  onClick={resetQuiz}
-                  className="py-2.5 px-6 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm cursor-pointer inline-flex items-center gap-2"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  <span>{isAr ? 'إعادة الاختبار' : 'Retry Quiz'}</span>
-                </button>
-              </div>
-            )}
-          </div>
+          <CurriculumQuizEngine
+            language={language}
+            initialDisciplineId={quizTarget?.disciplineId}
+            initialLevelId={quizTarget?.levelId}
+            initialModuleId={quizTarget?.moduleId}
+            initialModuleTitle={quizTarget?.moduleTitle}
+            onCloseTargetedQuiz={() => {
+              setQuizTarget(null);
+              setActiveSubTab('curriculum');
+            }}
+            onNavigateToDiscipline={() => {
+              setActiveSubTab('curriculum');
+            }}
+          />
         )}
 
         {/* Sub-Tab 6: Ask AI Professor */}
