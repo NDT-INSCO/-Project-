@@ -15,8 +15,13 @@
     "test:leaderboard": "tsx --test tests/knowledgeLeaderboard.test.tsx",
     "test:roadmap": "tsx --test tests/academyRoadmap.test.tsx",
     "test:cert": "tsx --test tests/certificationCenter.test.tsx",
-    "test": "npm run test:academy && npm run test:book && npm run test:leaderboard && npm run test:roadmap && npm run test:cert",
-    "verify": "npm run lint && npm run test && npm run build"
+    "test:edb": "tsx --test tests/edb.test.tsx",
+    "test:nde-ed": "tsx --test tests/ndeEdProgress.test.tsx && tsx --test tests/ndeEdData.test.tsx && tsx --test tests/ndeEdCatalog.test.tsx",
+    "test": "npm run test:academy && npm run test:book && npm run test:leaderboard && npm run test:roadmap && npm run test:cert && npm run test:edb && npm run test:nde-ed && npm run test:smoke",
+    "verify": "npm run lint && npm run test && npm run edb:check && npm run build",
+    "edb:build": "tsx scripts/build-edb.ts",
+    "edb:check": "tsx scripts/build-edb.ts --check",
+    "test:smoke": "tsx --test tests/academySmoke.test.tsx"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

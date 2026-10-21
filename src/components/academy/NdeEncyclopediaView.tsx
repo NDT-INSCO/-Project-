@@ -47,12 +47,16 @@ import { VirtualLab } from './VirtualLab';
 
 interface NdeEncyclopediaViewProps {
   language: Language;
+  initialBookId?: string;
+  initialPageNumber?: number;
   onOpenQuiz?: (disciplineId: string) => void;
   onOpenFlashcards?: (method: string) => void;
 }
 
 export const NdeEncyclopediaView: React.FC<NdeEncyclopediaViewProps> = ({ 
   language,
+  initialBookId,
+  initialPageNumber,
   onOpenQuiz,
   onOpenFlashcards 
 }) => {
@@ -374,6 +378,8 @@ export const NdeEncyclopediaView: React.FC<NdeEncyclopediaViewProps> = ({
       {activeTab === 'textbooks' && (
         <BookViewer
           language={language}
+          initialBookId={initialBookId}
+          initialPageNumber={initialPageNumber}
           onOpenQuiz={onOpenQuiz}
         />
       )}

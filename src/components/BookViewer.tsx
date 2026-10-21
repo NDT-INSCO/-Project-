@@ -34,6 +34,7 @@ import {
 export interface BookViewerProps {
   language?: Language;
   initialBookId?: string;
+  initialPageNumber?: number;
   onOpenQuiz?: (disciplineId: string) => void;
   className?: string;
 }
@@ -79,6 +80,7 @@ const playPageFlipSound = () => {
 export const BookViewer: React.FC<BookViewerProps> = ({ 
   language = 'ar',
   initialBookId,
+  initialPageNumber,
   onOpenQuiz,
   className = ''
 }) => {
@@ -92,6 +94,16 @@ export const BookViewer: React.FC<BookViewerProps> = ({
 
   // Current page index (0 to activeBook.pages.length - 1)
   const [currentPageIndex, setCurrentPageIndex] = useState<number>(0);
+
+  // Deep-link support from the NDE-Ed courses (textbook page shortcut).
+  useEffect(() => {
+    if (!initialBookId) return;
+    const target = NDT_TEXTBOOKS.find(book => book.id === initialBookId);
+    if (!target) return;
+    setSelectedBookId(target.id);
+    const index = Math.min(Math.max((initialPageNumber || 1) - 1, 0), target.pages.length - 1);
+    setCurrentPageIndex(index);
+  }, [initialBookId, initialPageNumber]);
 
   // 3D Flip animation state
   const [isFlipping, setIsFlipping] = useState<boolean>(false);

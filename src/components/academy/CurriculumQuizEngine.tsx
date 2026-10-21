@@ -4,6 +4,14 @@ import { Language } from '../../types';
 interface CurriculumQuizEngineProps {
   language: Language;
   quizTarget?: { disciplineId?: string; levelId?: string; moduleId?: string; moduleTitle?: { ar: string; en: string } } | null;
+  /** Deep-link target fields used by the academy container. */
+  initialDisciplineId?: string;
+  initialLevelId?: string;
+  initialModuleId?: string;
+  initialModuleTitle?: { ar: string; en: string };
+  onCloseTargetedQuiz?: () => void;
+  onNavigateToDiscipline?: () => void;
+  onOpenLeaderboard?: () => void;
 }
 
 export const CurriculumQuizEngine: React.FC<CurriculumQuizEngineProps> = ({ language }) => {

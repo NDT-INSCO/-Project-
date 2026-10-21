@@ -21,7 +21,8 @@ import {
   GraduationCap,
   Wrench,
   Trophy,
-  Compass
+  Compass,
+  Library
 } from 'lucide-react';
 import { Language, EducationalDefect, QuizQuestion } from '../types';
 import { NDT_METHODS, EDUCATIONAL_DEFECTS, STANDARDS_LIBRARY, SAMPLE_QUIZZES } from '../data/inscoData';
@@ -40,15 +41,18 @@ import { CertificationCenter } from './academy/CertificationCenter';
 import { AcademyKnowledgeLibrary } from './academy/AcademyKnowledgeLibrary';
 import { QuickReviewFlashcards } from './academy/QuickReviewFlashcards';
 import { NdeEncyclopediaView } from './academy/NdeEncyclopediaView';
+import { NdeEdCourseCatalog } from './academy/NdeEdCourseCatalog';
+import { ENGINEERING_DISCIPLINES } from '../data/academyCurriculum';
+import { EdbLibraryView } from './academy/EdbLibraryView';
 
 interface EducationalAcademyProps {
   language: Language;
-  initialSubTab?: 'knowledge' | 'encyclopedia' | 'curriculum' | 'flashcards' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'leaderboard' | 'completion_map' | 'roadmap' | 'certification_center';
+  initialSubTab?: 'knowledge' | 'encyclopedia' | 'curriculum' | 'courses' | 'edb' | 'flashcards' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'leaderboard' | 'completion_map' | 'roadmap' | 'certification_center';
 }
 
 export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language, initialSubTab }) => {
   const isAr = language === 'ar';
-  const [activeSubTab, setActiveSubTab] = useState<'knowledge' | 'encyclopedia' | 'curriculum' | 'flashcards' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'leaderboard' | 'completion_map' | 'roadmap' | 'certification_center'>(
+  const [activeSubTab, setActiveSubTab] = useState<'knowledge' | 'encyclopedia' | 'curriculum' | 'courses' | 'edb' | 'flashcards' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'leaderboard' | 'completion_map' | 'roadmap' | 'certification_center'>(
     initialSubTab || 'encyclopedia'
   );
 
@@ -66,6 +70,10 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
     levelIdx?: number;
     moduleId?: string;
   }>({});
+
+  const [courseTarget, setCourseTarget] = useState<string | undefined>(undefined);
+  const [edbTarget, setEdbTarget] = useState<string | undefined>(undefined);
+  const [textbookTarget, setTextbookTarget] = useState<{ bookId: string; pageNumber: number } | undefined>(undefined);
 
   const handleNavigateToCurriculumModule = (disciplineId: string, levelIdx: number, moduleId?: string) => {
     setCurriculumTarget({ disciplineId, levelIdx, moduleId });
@@ -259,12 +267,12 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             <button
               onClick={() => setActiveSubTab('encyclopedia')}
               className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeSubTab === 'encyclopedia' || activeSubTab === 'knowledge'
+                activeSubTab === 'encyclopedia' || activeSubTab === 'knowledge' || activeSubTab === 'edb'
                   ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.01]'
                   : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'
               }`}
             >
-              <BookOpen className={`w-4 h-4 ${activeSubTab === 'encyclopedia' || activeSubTab === 'knowledge' ? 'text-slate-950' : 'text-amber-400'}`} />
+              <BookOpen className={`w-4 h-4 ${activeSubTab === 'encyclopedia' || activeSubTab === 'knowledge' || activeSubTab === 'edb' ? 'text-slate-950' : 'text-amber-400'}`} />
               <span className="truncate">{isAr ? 'الكتب الدراسية والموسوعة' : 'Textbooks & Encyclopedia'}</span>
             </button>
 
@@ -272,12 +280,12 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             <button
               onClick={() => setActiveSubTab('curriculum')}
               className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeSubTab === 'curriculum'
+                activeSubTab === 'curriculum' || activeSubTab === 'courses'
                   ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.01]'
                   : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'
               }`}
             >
-              <GraduationCap className={`w-4 h-4 ${activeSubTab === 'curriculum' ? 'text-slate-950' : 'text-amber-400'}`} />
+              <GraduationCap className={`w-4 h-4 ${activeSubTab === 'curriculum' || activeSubTab === 'courses' ? 'text-slate-950' : 'text-amber-400'}`} />
               <span className="truncate">{isAr ? 'المناهج والمسارات' : 'Curricula (8)'}</span>
             </button>
 
@@ -295,7 +303,7 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               }`}
             >
               <Award className={`w-4 h-4 ${activeSubTab === 'certificates' || activeSubTab === 'certification_center' ? 'text-slate-950' : 'text-amber-400'}`} />
-              <span className="truncate">{isAr ? 'مركز الشهادات والاختبارات' : 'Certifications & Testing'}</span>
+              <span className="truncate">{isAr ? 'اختبارات NDT وإفادة التعلم' : 'NDT Exams & Learning Statement'}</span>
             </button>
 
             {/* Hub 3: Hands-on Interactive Workbenches */}
@@ -347,7 +355,7 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
           </div>
 
           {/* Child Sub-Segment Pills for Hub 0: Textbooks, Encyclopedia & Knowledge Library */}
-          {(activeSubTab === 'encyclopedia' || activeSubTab === 'knowledge') && (
+          {(activeSubTab === 'encyclopedia' || activeSubTab === 'knowledge' || activeSubTab === 'edb') && (
             <div className="flex flex-wrap items-center justify-center gap-2 animate-fadeIn">
               <button
                 onClick={() => setActiveSubTab('encyclopedia')}
@@ -370,6 +378,45 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               >
                 <FileText className="w-3.5 h-3.5 text-sky-400" />
                 <span>{isAr ? 'مكتبة الدروس ومسار القراءة التأسيسي' : 'Foundational Lessons & Reading Path'}</span>
+              </button>
+              <button
+                onClick={() => { setEdbTarget(undefined); setActiveSubTab('edb'); }}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'edb'
+                    ? 'bg-[#1e2554] text-amber-300 border border-amber-400/50 shadow-md'
+                    : 'bg-[#10132b] text-slate-400 hover:text-slate-200 border border-transparent'
+                }`}
+              >
+                <Library className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{isAr ? 'مكتبة EDB وتقليب الصفحات (17 كتاباً)' : 'EDB Flipbook Library (17 Books)'}</span>
+              </button>
+            </div>
+          )}
+
+          {/* Child Sub-Segment Pills for Hub 1: Curricula & NDE-Ed Courses */}
+          {(activeSubTab === 'curriculum' || activeSubTab === 'courses') && (
+            <div className="flex flex-wrap items-center justify-center gap-2 animate-fadeIn">
+              <button
+                onClick={() => setActiveSubTab('curriculum')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'curriculum'
+                    ? 'bg-[#1e2554] text-amber-300 border border-amber-400/50 shadow-md'
+                    : 'bg-[#10132b] text-slate-400 hover:text-slate-200 border border-transparent'
+                }`}
+              >
+                <GraduationCap className="w-3.5 h-3.5 text-amber-400" />
+                <span>{isAr ? 'المناهج الثمانية والمسارات المهنية' : 'Eight Disciplines & Career Paths'}</span>
+              </button>
+              <button
+                onClick={() => setActiveSubTab('courses')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'courses'
+                    ? 'bg-[#1e2554] text-cyan-300 border border-cyan-400/50 shadow-md'
+                    : 'bg-[#10132b] text-slate-400 hover:text-slate-200 border border-transparent'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{isAr ? 'مقررات NDE-Ed التفاعلية (6 مقررات)' : 'NDE-Ed Interactive Courses (6)'}</span>
               </button>
             </div>
           )}
@@ -397,7 +444,7 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
                 }`}
               >
                 <FileText className="w-3.5 h-3.5 text-sky-400" />
-                <span>{isAr ? 'إفادات إتمام الدراسة الذاتية والأوسمة الرقمية' : 'Self-Study Certificates & Badges'}</span>
+                <span>{isAr ? 'إفادة تعلم ذاتي غير معتمدة' : 'Self-Study Statement (non-accredited)'}</span>
               </button>
             </div>
           )}
@@ -580,6 +627,52 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               window.scrollTo({ top: 380, behavior: 'smooth' });
             }}
             onLaunchQuiz={(dId, lId, mId, mTitle) => handleLaunchModuleQuiz(dId, lId as any, mId, mTitle)}
+          />
+        )}
+
+        {/* Sub-Tab: NDE-Ed Interactive Courses */}
+        {activeSubTab === 'courses' && (
+          <NdeEdCourseCatalog
+            language={language}
+            initialCourseId={courseTarget}
+            onOpenCurriculum={(disciplineId, levelId, moduleId) => {
+              // Resolve the level index from the curriculum data itself so adding a
+              // stage can never silently shift every course deep-link.
+              const discipline = ENGINEERING_DISCIPLINES.find(item => item.id === disciplineId);
+              const found = discipline?.levels.findIndex(level => level.levelId === levelId) ?? -1;
+              handleNavigateToCurriculumModule(disciplineId, found >= 0 ? found : 0, moduleId);
+            }}
+            onOpenTextbook={(bookId, pageNumber) => {
+              setTextbookTarget({ bookId, pageNumber });
+              setActiveSubTab('encyclopedia');
+              window.scrollTo({ top: 320, behavior: 'smooth' });
+            }}
+            onOpenLab={() => {
+              setActiveSubTab('workshops');
+              window.scrollTo({ top: 380, behavior: 'smooth' });
+            }}
+            onOpenEdb={(courseId) => {
+              setEdbTarget(`edb-course-${courseId}`);
+              setActiveSubTab('edb');
+              window.scrollTo({ top: 380, behavior: 'smooth' });
+            }}
+          />
+        )}
+
+        {/* Sub-Tab: EDB Flipbook Library */}
+        {activeSubTab === 'edb' && (
+          <EdbLibraryView
+            language={language}
+            initialBookId={edbTarget}
+            onOpenCourse={(courseId) => {
+              setCourseTarget(courseId);
+              setActiveSubTab('courses');
+              window.scrollTo({ top: 380, behavior: 'smooth' });
+            }}
+            onOpenLab={() => {
+              setActiveSubTab('workshops');
+              window.scrollTo({ top: 380, behavior: 'smooth' });
+            }}
           />
         )}
 
@@ -1056,6 +1149,8 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
         {activeSubTab === 'encyclopedia' && (
           <NdeEncyclopediaView
             language={language}
+            initialBookId={textbookTarget?.bookId}
+            initialPageNumber={textbookTarget?.pageNumber}
             onOpenQuiz={(dId) => handleLaunchModuleQuiz(dId)}
             onOpenFlashcards={() => {
               setActiveSubTab('flashcards');

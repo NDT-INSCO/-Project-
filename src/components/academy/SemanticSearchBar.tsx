@@ -3,6 +3,10 @@ import { Language } from '../../types';
 
 interface SemanticSearchBarProps {
   language: Language;
+  /** Jump into the curriculum module shown in the search results. */
+  onNavigateToModule?: (disciplineId: string, levelIdx: number, moduleId?: string) => void;
+  /** Launch the module self-check for the selected result. */
+  onLaunchQuiz?: (disciplineId: string, levelId?: string, moduleId?: string, moduleTitle?: { ar: string; en: string }) => void;
 }
 
 export const SemanticSearchBar: React.FC<SemanticSearchBarProps> = ({ language }) => {
