@@ -8,12 +8,16 @@
 ## 1. تشغيل سريع
 
 ```bash
-npm install
+npm install        # يتطلب Node 22 أو أحدث (jsdom 30 ← undici 8 يحتاج zstd)
 npm run dev        # معاينة على المنفذ 3000
-npm run verify     # lint + كل الاختبارات + edb:check + links:check + build
+npm run verify     # lint + الاختبارات + EDB + الروابط + build + site:check
 ```
 
-`npm run verify` هو بوابة الدمج. لا تعتمد على `npm run build` وحده.
+`npm run verify` هو بوابة الدمج. لا تعتمد على `npm run build` وحده:
+البناء الناجح لا يعني أن `docs/` المنشور سليم — لذلك `site:check` في نهاية السلسلة.
+
+نشر الموقع: GitHub Pages ينشر `main`/`docs`. العمل على فرع لا يظهر على
+`https://ndt-insco.github.io/-Project-/` حتى يُدمج. راجع `SITE_REVIEW_AR.md`.
 
 ---
 
@@ -126,5 +130,5 @@ documentation/
 | صفحات EDB | 157 |
 | مهام عملية | 8 في 6 طرق |
 | مسارات تعلم | 3 |
-| مجموعات الاختبار | 13 |
-| اختبارات | 106 |
+| مجموعات الاختبار | 14 |
+| اختبارات | 112 |
