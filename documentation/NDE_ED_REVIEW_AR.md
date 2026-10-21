@@ -23,15 +23,26 @@
 
 ## 2. مصفوفة التعيين المطلوبة
 
-| المقرر | الملف | مراجع فني Level III (الطريقة) | مراجع سلامة/مخاطر | محرر عربي | الحالة |
+> الحالة الحقيقية تُقرأ من `src/data/ndeEd/review.ts` (`NDE_ED_REVIEW_REGISTER`)
+> وتظهر في واجهة المقرر نفسها كشارة. الجدول هنا نسخة بشرية؛ لا تعدله وحده.
+
+| المقرر | الملف | مراجع فني Level III | مراجع سلامة | محرر عربي | الحالة في السجل |
 | --- | --- | --- | --- | --- | --- |
-| فيزياء NDT | `src/data/ndeEd/physics.ts` | Level III (UT/RT/MT/PT عام) | — | مطلوب | ⏳ معلّق |
-| VT | `src/data/ndeEd/vt.ts` | Level III VT | — | مطلوب | ⏳ معلّق |
-| PT | `src/data/ndeEd/pt.ts` | Level III PT | مواد كيميائية/تهوية | مطلوب | ⏳ معلّق |
-| MT | `src/data/ndeEd/mt.ts` | Level III MT | كهرباء/مجالات | مطلوب | ⏳ معلّق |
-| UT | `src/data/ndeEd/ut.ts` | Level III UT | — | مطلوب | ⏳ معلّق |
-| RT | `src/data/ndeEd/rt.ts` | Level III RT | إشعاع/جرعات | مطلوب | ⏳ معلّق |
-| ET | `src/data/ndeEd/et.ts` | Level III ET | — | مطلوب | ⏳ معلّق |
+| فيزياء NDT | `src/data/ndeEd/physics.ts` | فيزياء NDT عبر الطرق | — | مطلوب | `pending` |
+| VT | `src/data/ndeEd/vt.ts` | VT Level III | — | مطلوب | `pending` |
+| PT | `src/data/ndeEd/pt.ts` | PT Level III | مواد كيميائية/تهوية | مطلوب | `pending` |
+| MT | `src/data/ndeEd/mt.ts` | MT Level III | كهرباء/مجالات | مطلوب | `pending` |
+| UT | `src/data/ndeEd/ut.ts` | UT Level III | — | مطلوب | `pending` |
+| RT | `src/data/ndeEd/rt.ts` | RT Level III | إشعاع/جرعات | مطلوب | `pending` |
+| ET | `src/data/ndeEd/et.ts` | ET Level III | — | مطلوب | `pending` |
+
+**قواعد مفروضة بالكود** (`tests/reviewAndLinks.test.tsx`):
+
+- `pending` لا يحمل مراجعاً ولا تاريخاً ولا بصمة.
+- `assigned` يحتاج اسم المراجع وتاريخ التعيين، ولا يحمل بصمة.
+- `reviewed` يحتاج الاسم والتاريخ وبصمة SHA-256 من 64 خانة، ومراجع سلامة إن
+  كانت الطريقة تتطلب ذلك.
+- لا يستطيع أي مقرر أن «يدّعي» مراجعة لم توقّع لأن الاختبار يفشل.
 
 **قاعدة الفصل:** لا يراجع شخص المقرر الذي كتبه. المراجع الفني يجب أن يحمل
 شهادة Level III سارية في الطريقة (ASNT أو ISO 9712) أو ما يعادلها، ويوقّع
@@ -97,6 +108,18 @@
 
 ---
 
+## 5.1 مراقبة روابط القراءة
+
+```bash
+npm run links:check          # فحص بنيوي بلا شبكة (داخل npm run verify)
+npm run links:check:online   # فحص الوصول الفعلي (workflow أسبوعي)
+```
+
+يفحص البنية: https فقط، مضيفين مسموحين (`nde-ed.org`, `asnt.org`)، عدم تكرار
+المعرّف أو الرابط، عدم وجود روابط بديلة، ولاحقة `.xhtml` المتوقعة.
+فحص الوصول يعمل في `.github/workflows/link-monitor.yml` أسبوعياً ولا يعطّل
+الدمج عند انقطاع الشبكة (يفصل بين «الشبكة محجوبة» و«الرابط مكسور»).
+
 ## 6. ما تم إنجازه في هذه الدورة
 
 - [x] ربط كل درس بمسار منهج حقيقي (وحدة + مستوى) والتحقق آلياً في
@@ -105,6 +128,9 @@
 - [x] إضافة وحدة ET في منهج NDT المتقدم ومقرر ET بـ5 دروس.
 - [x] فصل تقدم التعلم (`insco_nde_ed_progress_v1`) عن تقدم المنهج والشهادات.
 - [x] إعادة تسمية «الشهادات» إلى «إفادة تعلم ذاتي غير معتمدة» مع بيان حدود.
+- [x] سجل مراجعة قابل للتحقق (`review.ts`) مع شارة حالة على كل مقرر.
+- [x] مراقبة الروابط (`scripts/check-links.ts` + workflow أسبوعي).
+- [x] تقييم عملي تدريبي موثّق (`PracticalAssessmentView` + 8 مهام).
 - [ ] تعيين المراجعين الفنيين وتوقيع البصمات (يحتاج قرار المالك).
 
 ---

@@ -1,28 +1,29 @@
 import React, { useState } from 'react';
-import { 
-  BookOpen, 
-  Map,
-  HelpCircle, 
-  Flame, 
-  Activity, 
-  Search, 
-  FileText, 
-  CheckCircle2, 
-  XCircle, 
-  Sparkles, 
-  BrainCircuit, 
-  Sliders, 
-  Layers, 
-  Info, 
-  Send,
+import {
+  Activity,
   Award,
-  RefreshCw,
-  Film,
-  GraduationCap,
-  Wrench,
-  Trophy,
+  BookOpen,
+  BrainCircuit,
+  CheckCircle2,
+  ClipboardCheck,
   Compass,
-  Library
+  FileText,
+  Film,
+  Flame,
+  GraduationCap,
+  HelpCircle,
+  Info,
+  Layers,
+  Library,
+  Map,
+  RefreshCw,
+  Search,
+  Send,
+  Sliders,
+  Sparkles,
+  Trophy,
+  Wrench,
+  XCircle,
 } from 'lucide-react';
 import { Language, EducationalDefect, QuizQuestion } from '../types';
 import { NDT_METHODS, EDUCATIONAL_DEFECTS, STANDARDS_LIBRARY, SAMPLE_QUIZZES } from '../data/inscoData';
@@ -33,6 +34,7 @@ import { CurriculumQuizEngine } from './academy/CurriculumQuizEngine';
 import { CurriculumLevelProgressTracker } from './academy/CurriculumLevelProgressTracker';
 import { SemanticSearchBar } from './academy/SemanticSearchBar';
 import { CurriculumCertificatesView } from './academy/CurriculumCertificatesView';
+import { PracticalAssessmentView } from './academy/PracticalAssessmentView';
 import { GlobalLeaderboard } from './academy/GlobalLeaderboard';
 import { KnowledgeLeaderboard } from './academy/KnowledgeLeaderboard';
 import { AcademyCompletionMap } from './academy/AcademyCompletionMap';
@@ -49,12 +51,12 @@ import { EdbLibraryView } from './academy/EdbLibraryView';
 
 interface EducationalAcademyProps {
   language: Language;
-  initialSubTab?: 'knowledge' | 'encyclopedia' | 'curriculum' | 'courses' | 'edb' | 'flashcards' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'leaderboard' | 'completion_map' | 'roadmap' | 'certification_center';
+  initialSubTab?: 'knowledge' | 'encyclopedia' | 'curriculum' | 'courses' | 'edb' | 'flashcards' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'practical' | 'leaderboard' | 'completion_map' | 'roadmap' | 'certification_center';
 }
 
 export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language, initialSubTab }) => {
   const isAr = language === 'ar';
-  const [activeSubTab, setActiveSubTab] = useState<'knowledge' | 'encyclopedia' | 'curriculum' | 'courses' | 'edb' | 'flashcards' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'leaderboard' | 'completion_map' | 'roadmap' | 'certification_center'>(
+  const [activeSubTab, setActiveSubTab] = useState<'knowledge' | 'encyclopedia' | 'curriculum' | 'courses' | 'edb' | 'flashcards' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'practical' | 'leaderboard' | 'completion_map' | 'roadmap' | 'certification_center'>(
     initialSubTab || 'encyclopedia'
   );
 
@@ -294,17 +296,17 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             {/* Hub 2: Certification & Digital Badges */}
             <button
               onClick={() => {
-                if (activeSubTab !== 'certificates' && activeSubTab !== 'certification_center') {
+                if (activeSubTab !== 'certificates' && activeSubTab !== 'certification_center' && activeSubTab !== 'practical') {
                   setActiveSubTab('certification_center');
                 }
               }}
               className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeSubTab === 'certificates' || activeSubTab === 'certification_center'
+                activeSubTab === 'certificates' || activeSubTab === 'certification_center' || activeSubTab === 'practical'
                   ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.01]'
                   : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'
               }`}
             >
-              <Award className={`w-4 h-4 ${activeSubTab === 'certificates' || activeSubTab === 'certification_center' ? 'text-slate-950' : 'text-amber-400'}`} />
+              <Award className={`w-4 h-4 ${activeSubTab === 'certificates' || activeSubTab === 'certification_center' || activeSubTab === 'practical' ? 'text-slate-950' : 'text-amber-400'}`} />
               <span className="truncate">{isAr ? 'اختبارات NDT وإفادة التعلم' : 'NDT Exams & Learning Statement'}</span>
             </button>
 
@@ -424,7 +426,7 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
           )}
 
           {/* Child Sub-Segment Pills for Hub 2: Certification Center & Attestations */}
-          {(activeSubTab === 'certificates' || activeSubTab === 'certification_center') && (
+          {(activeSubTab === 'certificates' || activeSubTab === 'certification_center' || activeSubTab === 'practical') && (
             <div className="flex flex-wrap items-center justify-center gap-2 animate-fadeIn">
               <button
                 onClick={() => setActiveSubTab('certification_center')}
@@ -447,6 +449,17 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               >
                 <FileText className="w-3.5 h-3.5 text-sky-400" />
                 <span>{isAr ? 'إفادة تعلم ذاتي غير معتمدة' : 'Self-Study Statement (non-accredited)'}</span>
+              </button>
+              <button
+                onClick={() => setActiveSubTab('practical')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'practical'
+                    ? 'bg-[#1e2554] text-teal-300 border border-teal-400/50 shadow-md'
+                    : 'bg-[#10132b] text-slate-400 hover:text-slate-200 border border-transparent'
+                }`}
+              >
+                <ClipboardCheck className="w-3.5 h-3.5 text-teal-400" />
+                <span>{isAr ? 'التقييم العملي الموثّق (تدريبي)' : 'Practical Assessment (training)'}</span>
               </button>
             </div>
           )}
@@ -708,6 +721,11 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             language={language}
             onLaunchQuiz={(dId) => handleLaunchModuleQuiz(dId, 'academic')}
           />
+        )}
+
+        {/* Sub-Tab 0B2: Documented Practical Assessment (training record) */}
+        {activeSubTab === 'practical' && (
+          <PracticalAssessmentView language={language} />
         )}
 
         {/* Sub-Tab 0B: Interactive Hands-on Visual Workbenches */}

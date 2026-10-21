@@ -31,6 +31,12 @@ test('the academy opens the EDB library tab without crashing', () => {
   cleanup();
 });
 
+test('the academy opens the practical assessment tab without crashing', () => {
+  const ui = render(<EducationalAcademy language="en" initialSubTab="practical" />);
+  assert.match(ui.container.textContent || '', /Training practical assessment/i);
+  cleanup();
+});
+
 test('the academy opens the self-study statement tab without crashing', () => {
   const ui = render(<EducationalAcademy language="en" initialSubTab="certificates" />);
   assert.match(ui.container.textContent || '', /Self-study learning statement/i);

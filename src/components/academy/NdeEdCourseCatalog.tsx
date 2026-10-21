@@ -36,6 +36,7 @@ import {
   courseMinutes,
   getSource,
 } from '../../data/ndeEd';
+import { REVIEW_STAGE_LABEL, reviewFor, reviewSummary } from '../../data/ndeEd/review';
 import {
   NdeEdProgressState,
   getCourseProgress,
@@ -326,6 +327,7 @@ export const NdeEdCourseCatalog: React.FC<NdeEdCourseCatalogProps> = ({
   const course = courseId ? NDE_ED_COURSES.find(item => item.id === courseId) : null;
   const lesson = course && lessonId ? course.lessons.find(item => item.id === lessonId) : null;
   const overall = overallNdeEdProgress(state);
+  const reviewLabel = reviewSummary().label;
 
   const filteredCourses = useMemo(() => {
     const q = normalize(query.trim());
@@ -393,6 +395,21 @@ export const NdeEdCourseCatalog: React.FC<NdeEdCourseCatalogProps> = ({
             <span className="rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider" style={{ backgroundColor: `${course.accent}22`, color: course.accent }}>{course.code} • {textOf(LEVEL_LABEL[course.level], language)}</span>
             <span className="rounded-full border border-[#303961] px-3 py-1 text-[10px] text-slate-300">{disciplineName(course.disciplineId, language)}</span>
             <span className="rounded-full border border-[#303961] px-3 py-1 text-[10px] text-slate-300">{courseMinutes(course)} {isAr ? 'دقيقة دراسة مقترحة' : 'suggested minutes'}</span>
+            {(() => {
+              const review = reviewFor(course.id);
+              if (!review) return null;
+              const label = REVIEW_STAGE_LABEL[review.stage];
+              const tone = review.stage === 'reviewed'
+                ? 'border-emerald-400/40 bg-emerald-400/10 text-emerald-300'
+                : review.stage === 'assigned'
+                  ? 'border-sky-400/40 bg-sky-400/10 text-sky-300'
+                  : 'border-amber-400/40 bg-amber-400/10 text-amber-300';
+              return (
+                <span className={`rounded-full border px-3 py-1 text-[10px] font-bold ${tone}`} title={review.technicalRole}>
+                  {textOf(label, language)}
+                </span>
+              );
+            })()}
           </div>
           <h2 className="text-2xl sm:text-4xl font-black text-white mt-4 leading-tight">{textOf(course.title, language)}</h2>
           <p className="text-sm text-slate-300 mt-2">{textOf(course.subtitle, language)}</p>
@@ -550,6 +567,7 @@ export const NdeEdCourseCatalog: React.FC<NdeEdCourseCatalogProps> = ({
             <span className="rounded-lg border border-[#303961] px-3 py-1.5">{NDE_ED_SOURCES.length} {isAr ? 'مصدر قراءة' : 'reading sources'}</span>
             <span className="rounded-lg border border-[#303961] px-3 py-1.5">{Math.round(NDE_ED_TOTAL_MINUTES / 60)}h {isAr ? 'دراسة مقترحة' : 'suggested study'}</span>
             <span className="rounded-lg border border-emerald-400/30 px-3 py-1.5 text-emerald-300">{overall.completed}/{overall.total} {isAr ? 'درساً مكتملاً' : 'lessons complete'}</span>
+            <span className="rounded-lg border border-amber-400/30 bg-amber-400/5 px-3 py-1.5 text-amber-200">{textOf(reviewLabel, language)}</span>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
             <button type="button" onClick={() => setCoverage(true)} className="rounded-lg bg-cyan-400 px-3 py-2 text-xs font-black text-slate-950">{isAr ? 'خريطة التغطية' : 'Coverage map'}</button>
