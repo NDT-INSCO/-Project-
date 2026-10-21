@@ -11,11 +11,17 @@
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "test:academy": "tsx --test tests/academy.test.tsx",
-    "verify": "npm run lint && npm run test:academy && npm run build"
+    "test:book": "tsx --test tests/bookViewer.test.tsx",
+    "test:leaderboard": "tsx --test tests/knowledgeLeaderboard.test.tsx",
+    "test:roadmap": "tsx --test tests/academyRoadmap.test.tsx",
+    "test:cert": "tsx --test tests/certificationCenter.test.tsx",
+    "test": "npm run test:academy && npm run test:book && npm run test:leaderboard && npm run test:roadmap && npm run test:cert",
+    "verify": "npm run lint && npm run test && npm run build"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.3.3",
+    "@types/three": "^0.186.0",
     "@vitejs/plugin-react": "^6.1.1",
     "canvas-confetti": "^1.9.4",
     "dotenv": "^17.2.3",
@@ -25,6 +31,7 @@
     "motion": "^12.23.24",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
+    "three": "^0.186.1",
     "vite": "^8.3.0",
     "ws": "^8.22.0"
   },
