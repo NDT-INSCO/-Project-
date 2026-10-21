@@ -62,7 +62,12 @@ npm run verify
   ووحدة ET في `src/data/academyCurriculum.ts`.
 - **إفادة التعلم الذاتي**: `CurriculumCertificatesView` — ليست شهادة ولا اعتماداً.
 - **خطة المراجعة**: `documentation/NDE_ED_REVIEW_AR.md` (تعيين Level III معلّق).
-- **CI**: `.github/workflows/verify.yml` يشغّل lint + tests + edb:check + build.
+- **CI**: `.github/workflows/verify.yml` يشغّل lint + tests + edb:check + links:check + build.
+- **مسارات التعلم**: `src/data/learningPaths.ts` + تبويب `paths`.
+- **التقييم العملي**: `PracticalAssessmentView` + `src/data/practicalAssessment.ts` (8 مهام، 6 طرق).
+- **مراقبة الروابط**: `scripts/check-links.ts` + `.github/workflows/link-monitor.yml` (أسبوعي).
+- **سجل المراجعة**: `src/data/ndeEd/review.ts` — كل المقررات `pending` حتى التوقيع.
+- **ملف الحالة الكامل**: `documentation/STATUS_AR.md` (ما تم، ما بقي، وكيف تتحقق).
 
 ## 8. قراءة إضافية
 - `docs/HANDOVER_AR.md` — دليل التسليم (14 قسم).
