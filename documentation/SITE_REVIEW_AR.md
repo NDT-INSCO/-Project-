@@ -117,6 +117,13 @@ curl -o /dev/null -w "%{http_code}\n" https://ndt-insco.github.io/-Project-/edb/
 
 curl -s https://ndt-insco.github.io/-Project-/edb/index.json | head -c 200
 # المتوقع: {"format":"EDB-INDEX","version":"1.0",...
+
+curl -o /dev/null -w "%{http_code} %{content_type} %{size_download}\n" \
+  https://ndt-insco.github.io/-Project-/epub/book-vt.epub
+# المتوقع: 200 application/epub+zip 29087
+
+curl -o /dev/null -w "%{http_code}\n" https://ndt-insco.github.io/-Project-/epub/index.html
+# المتوقع: 200 (صفحة تحميل الكتب)
 ```
 
 4. افتح `https://ndt-insco.github.io/-Project-/#courses` — يجب أن يفتح تبويب
