@@ -60,7 +60,11 @@ export const CurriculumCertificatesView: React.FC<CurriculumCertificatesViewProp
     modulesCompleted = Object.values(completedModules).filter(Boolean).length;
 
     const topics = getCompletedTopics();
-    const topicsCompleted = Object.values(topics).reduce((sum, list) => sum + list.length, 0);
+    // The topic map is user-writable; count only entries that really are arrays.
+    const topicsCompleted = Object.values(topics).reduce(
+      (sum, list) => sum + (Array.isArray(list) ? list.length : 0),
+      0
+    );
 
     let knowledgeRead = 0;
     try {

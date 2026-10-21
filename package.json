@@ -17,16 +17,19 @@
     "test:cert": "tsx --test tests/certificationCenter.test.tsx",
     "test:edb": "tsx --test tests/edb.test.tsx",
     "test:nde-ed": "tsx --test tests/ndeEdProgress.test.tsx && tsx --test tests/ndeEdData.test.tsx && tsx --test tests/ndeEdCatalog.test.tsx",
-    "test": "npm run test:academy && npm run test:book && npm run test:leaderboard && npm run test:roadmap && npm run test:cert && npm run test:edb && npm run test:nde-ed && npm run test:practical && npm run test:review && npm run test:paths && npm run test:smoke",
-    "verify": "npm run lint && npm run test && npm run edb:check && npm run links:check && npm run build",
+    "test": "npm run test:academy && npm run test:book && npm run test:leaderboard && npm run test:roadmap && npm run test:cert && npm run test:edb && npm run test:nde-ed && npm run test:practical && npm run test:review && npm run test:paths && npm run test:routing && npm run test:smoke",
+    "verify": "npm run lint && npm run test && npm run edb:check && npm run edb:verify:published && npm run links:check && npm run build && npm run site:check",
     "edb:build": "tsx scripts/build-edb.ts",
     "edb:check": "tsx scripts/build-edb.ts --check",
     "test:smoke": "tsx --test tests/academySmoke.test.tsx",
     "test:practical": "tsx --test tests/practicalAssessment.test.tsx",
     "test:review": "tsx --test tests/reviewAndLinks.test.tsx",
     "test:paths": "tsx --test tests/learningPaths.test.tsx",
+    "test:routing": "tsx --test tests/routingAndLanguage.test.tsx",
     "links:check": "tsx scripts/check-links.ts",
-    "links:check:online": "tsx scripts/check-links.ts --online"
+    "links:check:online": "tsx scripts/check-links.ts --online",
+    "edb:verify:published": "tsx scripts/verify-published-edb.ts",
+    "site:check": "tsx scripts/check-published-site.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

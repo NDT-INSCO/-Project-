@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { Suspense, lazy, useState, useMemo } from 'react';
 import { 
   FlaskConical, 
   Activity, 
@@ -23,7 +23,12 @@ import {
   VirtualLabExperiment,
   CalibrationReportData
 } from '../../data/virtualLabData';
-import { UtThreeScene } from './virtuallab/UtThreeScene';
+// three.js is only needed when this lab is actually opened. Importing it
+// statically put ~600 KB of renderer code in the first payload for every
+// visitor, including those who only read the library tab.
+const UtThreeScene = lazy(() =>
+  import('./virtuallab/UtThreeScene').then(module => ({ default: module.UtThreeScene }))
+);
 import { UtAScanDisplay } from './virtuallab/UtAScanDisplay';
 import { CalibrationReportModal } from './virtuallab/CalibrationReportModal';
 
@@ -334,6 +339,13 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ language }) => {
 
             {/* 3D Scene Canvas */}
             <div className="h-[380px] sm:h-[440px]">
+              <Suspense
+                fallback={
+                  <div className="flex h-full items-center justify-center rounded-2xl border border-[#232a55] bg-[#080c1c] text-xs text-slate-400">
+                    {isAr ? 'جارٍ تحميل الحيز ثلاثي الأبعاد…' : 'Loading the 3D viewport…'}
+                  </div>
+                }
+              >
               <UtThreeScene
                 blockType={currentExp.blockType}
                 probePositionMm={probeStandoffMm}
@@ -345,6 +357,7 @@ export const VirtualLab: React.FC<VirtualLabProps> = ({ language }) => {
                 areParticlesApplied={areParticlesApplied}
                 crackAngleDeg={crackAngleDeg}
               />
+              </Suspense>
             </div>
 
             {/* Block-Specific Interactive Controls */}

@@ -162,7 +162,7 @@ export function createPracticalAssessment(
 ): { record: PPARecord | null; error?: string } {
   const task = getPracticalTask(input.taskId);
   if (!task) return { record: null, error: 'unknown-task' };
-  if (!input.scores.some(row => row.criterionId === task.criteria[0].id) && input.scores.length === 0) {
+  if (input.scores.length === 0) {
     return { record: null, error: 'no-scores' };
   }
 

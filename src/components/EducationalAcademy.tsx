@@ -52,14 +52,27 @@ import { LEARNING_PATHS } from '../data/learningPaths';
 import { NDT_TEXTBOOKS } from '../data/ndeTextbooksData';
 import { EdbLibraryView } from './academy/EdbLibraryView';
 
+export type SubTab =
+  | 'knowledge' | 'encyclopedia' | 'curriculum' | 'courses' | 'paths' | 'edb'
+  | 'flashcards' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards'
+  | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'practical' | 'leaderboard'
+  | 'completion_map' | 'roadmap' | 'certification_center';
+
+export const SUB_TABS: SubTab[] = [
+  'knowledge', 'encyclopedia', 'curriculum', 'courses', 'paths', 'edb',
+  'flashcards', 'workshops', 'defects', 'pwht_curve', 'methods', 'standards',
+  'quiz', 'ask_ai', 'video_gen', 'certificates', 'practical', 'leaderboard',
+  'completion_map', 'roadmap', 'certification_center',
+];
+
 interface EducationalAcademyProps {
   language: Language;
-  initialSubTab?: 'knowledge' | 'encyclopedia' | 'curriculum' | 'courses' | 'edb' | 'flashcards' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'practical' | 'paths' | 'leaderboard' | 'completion_map' | 'roadmap' | 'certification_center';
+  initialSubTab?: SubTab;
 }
 
 export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language, initialSubTab }) => {
   const isAr = language === 'ar';
-  const [activeSubTab, setActiveSubTab] = useState<'knowledge' | 'encyclopedia' | 'curriculum' | 'courses' | 'edb' | 'flashcards' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards' | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'practical' | 'paths' | 'leaderboard' | 'completion_map' | 'roadmap' | 'certification_center'>(
+  const [activeSubTab, setActiveSubTab] = useState<SubTab>(
     initialSubTab || 'encyclopedia'
   );
 
@@ -104,6 +117,29 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
       setActiveSubTab(initialSubTab);
     }
   }, [initialSubTab]);
+
+  // A tab is shareable: `#courses`, `#practical`, `#edb`… The hash is the only
+  // router in the app, so a teacher can paste a link straight to a section.
+  // `initialSubTab` (tests, embeds) always wins over the URL.
+  React.useEffect(() => {
+    if (initialSubTab) return;
+    const applyHash = () => {
+      const candidate = window.location.hash.replace(/^#/, '').trim();
+      if (candidate && SUB_TABS.includes(candidate as SubTab)) {
+        setActiveSubTab(candidate as SubTab);
+      }
+    };
+    applyHash();
+    window.addEventListener('hashchange', applyHash);
+    return () => window.removeEventListener('hashchange', applyHash);
+  }, [initialSubTab]);
+
+  React.useEffect(() => {
+    if (initialSubTab) return;
+    if (window.location.hash.replace(/^#/, '') === activeSubTab) return;
+    // replaceState keeps the back button clean while still updating the URL.
+    window.history.replaceState(null, '', `#${activeSubTab}`);
+  }, [activeSubTab, initialSubTab]);
 
   // Defect Simulator State
   const [selectedDefect, setSelectedDefect] = useState<EducationalDefect>(EDUCATIONAL_DEFECTS[0]);
