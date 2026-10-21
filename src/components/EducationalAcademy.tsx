@@ -43,6 +43,8 @@ import { QuickReviewFlashcards } from './academy/QuickReviewFlashcards';
 import { NdeEncyclopediaView } from './academy/NdeEncyclopediaView';
 import { NdeEdCourseCatalog } from './academy/NdeEdCourseCatalog';
 import { ENGINEERING_DISCIPLINES } from '../data/academyCurriculum';
+import { NDE_ED_COURSES } from '../data/ndeEd';
+import { NDT_TEXTBOOKS } from '../data/ndeTextbooksData';
 import { EdbLibraryView } from './academy/EdbLibraryView';
 
 interface EducationalAcademyProps {
@@ -366,7 +368,7 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
                 }`}
               >
                 <BookOpen className="w-3.5 h-3.5 text-amber-400" />
-                <span>{isAr ? 'الكتب الدراسية التفاعلية وتقليب الصفحات (8 كتب) والمعمل' : 'Interactive Textbooks & Labs (8 Books)'}</span>
+                <span>{isAr ? `الكتب الدراسية التفاعلية وتقليب الصفحات (${NDT_TEXTBOOKS.length} كتاباً) والمعمل` : `Interactive Textbooks & Labs (${NDT_TEXTBOOKS.length} Books)`}</span>
               </button>
               <button
                 onClick={() => setActiveSubTab('knowledge')}
@@ -388,7 +390,7 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
                 }`}
               >
                 <Library className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{isAr ? 'مكتبة EDB وتقليب الصفحات (17 كتاباً)' : 'EDB Flipbook Library (17 Books)'}</span>
+                <span>{isAr ? `مكتبة EDB وتقليب الصفحات (${NDT_TEXTBOOKS.length + NDE_ED_COURSES.length} مستنداً)` : `EDB Flipbook Library (${NDT_TEXTBOOKS.length + NDE_ED_COURSES.length} Documents)`}</span>
               </button>
             </div>
           )}
@@ -416,7 +418,7 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
                 }`}
               >
                 <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
-                <span>{isAr ? 'مقررات NDE-Ed التفاعلية (6 مقررات)' : 'NDE-Ed Interactive Courses (6)'}</span>
+                <span>{isAr ? `مقررات NDE-Ed التفاعلية (${NDE_ED_COURSES.length} مقررات)` : `NDE-Ed Interactive Courses (${NDE_ED_COURSES.length})`}</span>
               </button>
             </div>
           )}

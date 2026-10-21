@@ -541,8 +541,8 @@ export const NdeEdCourseCatalog: React.FC<NdeEdCourseCatalogProps> = ({
           </h2>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-300">
             {isAr
-              ? 'ستة مقررات و30 درساً أصلي الصياغة، مبنية على هيكل موضوعات nde-ed.org: أهداف قابلة للقياس، شرح، مثال محلول، تمرين، سؤال فهم، ومصادر قراءة. التقدم محلي ومنفصل عن المناهج والشهادات.'
-              : 'Six courses and 30 original lessons structured from nde-ed.org topics: measurable objectives, explanation, worked example, exercise, knowledge check and reading sources. Progress is local and separate from curricula and certificates.'}
+              ? `${NDE_ED_COURSES.length} مقررات و${NDE_ED_LESSONS.length} درساً أصلي الصياغة، مبنية على هيكل موضوعات nde-ed.org: أهداف قابلة للقياس، شرح، مثال محلول، تمرين، سؤال فهم، ومصادر قراءة. التقدم محلي ومنفصل عن المناهج وإفادة التعلم الذاتي.`
+              : `${NDE_ED_COURSES.length} courses and ${NDE_ED_LESSONS.length} original lessons structured from nde-ed.org topics: measurable objectives, explanation, worked example, exercise, knowledge check and reading sources. Progress is local and separate from curricula and the self-study statement.`}
           </p>
           <div className="mt-5 flex flex-wrap gap-2 text-[11px] text-slate-200">
             <span className="rounded-lg border border-[#303961] px-3 py-1.5">{NDE_ED_COURSES.length} {isAr ? 'مقررات' : 'courses'}</span>
