@@ -27,6 +27,7 @@ import { Language } from '../../types';
 import { EdbBlock, EdbDocument, EdbPage, EdbText } from '../../edb/types';
 import {
   downloadEdb,
+  epubAssetUrl,
   getEdbProgress,
   prettyFormula,
   saveEdbProgress,
@@ -567,6 +568,16 @@ export const EdbFlipbook: React.FC<EdbFlipbookProps> = ({ language, book, onClos
           <button type="button" onClick={() => setFullscreen(value => !value)} className="rounded-lg border border-white/15 p-2 hover:bg-white/10" aria-label={isAr ? 'ملء الشاشة' : 'Fullscreen'} title={isAr ? 'ملء الشاشة' : 'Fullscreen'}>
             {fullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
+          <a
+            href={epubAssetUrl(book.id)}
+            download
+            className="flex items-center gap-1 rounded-lg border border-emerald-400/40 px-2 py-2 text-[10px] font-black text-emerald-300 hover:bg-emerald-400/10"
+            aria-label={isAr ? 'تنزيل نسخة EPUB للقراء الإلكترونيين' : 'Download the EPUB edition for e-readers'}
+            title={isAr ? 'تنزيل EPUB (Kindle / Kobo / Apple Books)' : 'Download EPUB (Kindle / Kobo / Apple Books)'}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span className="hidden sm:inline">EPUB</span>
+          </a>
           <button type="button" onClick={() => downloadEdb(book)} className="rounded-lg border border-white/15 p-2 hover:bg-white/10" aria-label={isAr ? 'تنزيل .EDB' : 'Download .EDB'} title={isAr ? 'تنزيل .EDB' : 'Download .EDB'}>
             <Download className="w-4 h-4" />
           </button>

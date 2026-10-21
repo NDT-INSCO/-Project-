@@ -19,6 +19,8 @@ import { ENGINEERING_DISCIPLINES } from '../../data/academyCurriculum';
 import { EdbDocument, EdbIndex, EdbIndexEntry } from '../../edb/types';
 import { parseEdb } from '../../edb/validate';
 import {
+  epubAssetUrl,
+  epubCatalogUrl,
   getEdbProgress,
   loadEdbDocument,
   loadEdbIndex,
@@ -225,9 +227,11 @@ export const EdbLibraryView: React.FC<EdbLibraryViewProps> = ({ language, initia
               : 'Every book is a standalone .EDB file: verifiable JSON with bilingual pages, formulas, knowledge checks and source links. A 3D reader provides contents, search, bookmarks and export; reading progress is stored locally only.'}
           </p>
           <div className="mt-5 flex flex-wrap gap-2 text-[11px] text-slate-200">
-            <span className="rounded-lg border border-[#303961] px-3 py-1.5">{index?.books.length ?? 17} {isAr ? 'كتاباً' : 'books'}</span>
-            <span className="rounded-lg border border-[#303961] px-3 py-1.5">{index?.books.reduce((sum, entry) => sum + entry.pages, 0) ?? 149} {isAr ? 'صفحة' : 'pages'}</span>
-            <span className="rounded-lg border border-[#303961] px-3 py-1.5">{isAr ? '17 ملف .EDB جاهز' : '17 ready .EDB files'}</span>
+            <span className="rounded-lg border border-[#303961] px-3 py-1.5">{index?.books.length ?? 0} {isAr ? 'كتاباً' : 'books'}</span>
+            <span className="rounded-lg border border-[#303961] px-3 py-1.5">{index?.books.reduce((sum, entry) => sum + entry.pages, 0) ?? 0} {isAr ? 'صفحة' : 'pages'}</span>
+            <a href={epubCatalogUrl()} className="rounded-lg border border-emerald-400/40 px-3 py-1.5 font-bold text-emerald-300 hover:bg-emerald-400/10">
+              {isAr ? 'نسخة EPUB للقراء الإلكترونيين' : 'EPUB edition for e-readers'}
+            </a>
             <span className={`rounded-lg border px-3 py-1.5 ${source === 'files' ? 'border-emerald-400/40 text-emerald-300' : 'border-amber-400/40 text-amber-300'}`}>
               {source === 'loading' ? (isAr ? 'جارٍ تحميل الفهرس…' : 'Loading index…') : source === 'files' ? (isAr ? 'ملفات EDB محمّلة' : 'EDB files loaded') : (isAr ? 'وضع احتياطي داخل التطبيق' : 'In-app fallback')}
             </span>
@@ -321,6 +325,9 @@ export const EdbLibraryView: React.FC<EdbLibraryViewProps> = ({ language, initia
                         {isAr ? 'المقرر' : 'Course'}
                       </button>
                     )}
+                    <a href={epubAssetUrl(entry.id)} download className="flex items-center justify-center rounded-lg border border-emerald-400/40 px-2 py-2 text-emerald-300 hover:bg-emerald-400/10" aria-label={isAr ? `تنزيل ${textOf(entry.title, 'ar')} بصيغة EPUB` : `Download ${textOf(entry.title, 'en')} as EPUB`} title="EPUB">
+                      <Download className="w-4 h-4" />
+                    </a>
                   </div>
                 </article>
               );
@@ -347,9 +354,14 @@ export const EdbLibraryView: React.FC<EdbLibraryViewProps> = ({ language, initia
                     <span className="font-mono">{entry.standards[0] || disciplineLabel(entry.discipline, language)}</span>
                   </div>
                   <div className="h-1 rounded-full bg-slate-800 overflow-hidden"><div className="h-full" style={{ width: `${pct}%`, backgroundColor: entry.accent }} /></div>
-                  <button type="button" onClick={() => void openBook(entry)} className="w-full rounded-lg bg-amber-500 px-3 py-2 text-xs font-black text-slate-950">
-                    {isAr ? 'اقرأ بالتقليب' : 'Open flipbook'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => void openBook(entry)} className="flex-1 rounded-lg bg-amber-500 px-3 py-2 text-xs font-black text-slate-950">
+                      {isAr ? 'اقرأ بالتقليب' : 'Open flipbook'}
+                    </button>
+                    <a href={epubAssetUrl(entry.id)} download className="flex items-center justify-center rounded-lg border border-emerald-400/40 px-2 py-2 text-emerald-300 hover:bg-emerald-400/10" aria-label={isAr ? `تنزيل ${textOf(entry.title, 'ar')} بصيغة EPUB` : `Download ${textOf(entry.title, 'en')} as EPUB`} title="EPUB">
+                      <Download className="w-4 h-4" />
+                    </a>
+                  </div>
                 </article>
               );
             })}
@@ -378,6 +390,11 @@ export const EdbLibraryView: React.FC<EdbLibraryViewProps> = ({ language, initia
           <span className="rounded border border-[#303961] px-2 py-1 font-mono">no scripts</span>
           <span className="rounded border border-[#303961] px-2 py-1 font-mono">bilingual pages</span>
         </div>
+        <p className="text-xs leading-6 text-slate-300">
+          {isAr
+            ? 'إلى جانب EDB تُنشر كل الكتب بصيغة EPUB 3 قياسية: ملف واحد يعمل على Kindle وKobo وApple Books وCalibre دون اتصال، بالعربية والإنجليزية مع فهرس وأسئلة فهم. النسختان تُبنيان من المصدر نفسه، فالمحتوى واحد.'
+            : 'Besides EDB, every book ships as a standard EPUB 3 file: one download that works offline on Kindle, Kobo, Apple Books and Calibre, in Arabic and English with a table of contents and knowledge checks. Both editions are built from the same source, so the content is identical.'}
+        </p>
         <p className="text-[10px] leading-5 text-slate-500">
           {isAr ? 'المصادر الأصلية للكتب هي مكتبة إنسكو. مقررات NDE-Ed تستخدم هيكل موضوعات nde-ed.org مع إسناد؛ الصياغة والأمثلة أصلية. تنزيل الملف لا يمنح حقوق إعادة نشر المحتوى.' : 'Textbook sources are the INSCO library. NDE-Ed courses use the nde-ed.org topic structure with attribution; wording and examples are original. Downloading a file does not grant redistribution rights.'}
         </p>

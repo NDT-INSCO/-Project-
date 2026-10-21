@@ -1,6 +1,7 @@
 import { NDT_TEXTBOOKS } from '../data/ndeTextbooksData';
 import { NDE_ED_COURSES, NDE_ED_SOURCE_MAP } from '../data/ndeEd';
 import { courseToEdb, textbookToEdb } from '../edb/convert';
+import { formatFormula } from '../edb/format';
 import { parseEdb, stableStringify } from '../edb/validate';
 import { EdbDocument, EdbIndex, EdbIndexEntry } from '../edb/types';
 
@@ -20,37 +21,7 @@ export function textOf(value: { ar: string; en: string }, language: 'ar' | 'en')
 }
 
 export function prettyFormula(expression: string): string {
-  const symbols: Record<string, string> = {
-    '\\lambda': 'λ',
-    '\\theta': 'θ',
-    '\\rho': 'ρ',
-    '\\mu': 'μ',
-    '\\pi': 'π',
-    '\\Delta': 'Δ',
-    '\\delta': 'δ',
-    '\\gamma': 'γ',
-    '\\infty': '∞',
-    '\\times': '×',
-    '\\cdot': '·',
-    '\\sqrt': '√',
-    '\\approx': '≈',
-    '\\le': '≤',
-    '\\ge': '≥',
-    '\\pm': '±',
-    '\\%': '%',
-    '\\,': ' ',
-    '\\left': '',
-    '\\right': '',
-  };
-  let output = expression;
-  Object.entries(symbols).forEach(([from, to]) => {
-    output = output.split(from).join(to);
-  });
-  output = output.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '($1)/($2)');
-  output = output.replace(/\^\{([^{}]+)\}/g, '^($1)');
-  output = output.replace(/_\{([^{}]+)\}/g, '_($1)');
-  output = output.replace(/\\([a-zA-Z]+)/g, '$1');
-  return output.replace(/\s+/g, ' ').trim();
+  return formatFormula(expression);
 }
 
 function localDocuments(): EdbDocument[] {
@@ -103,9 +74,18 @@ export function localEdbDocument(id: string): EdbDocument | null {
   return null;
 }
 
-function assetCandidates(relative: string): string[] {
+function assetBase(): string {
   const base = (import.meta as ImportMeta & { env?: { BASE_URL?: string } }).env?.BASE_URL || '/';
-  const normalizedBase = base.endsWith('/') ? base : `${base}/`;
+  return base.endsWith('/') ? base : `${base}/`;
+}
+
+/** Absolute-url path for a file shipped in `public/` (honours the Vite base). */
+export function assetUrl(relative: string): string {
+  return `${assetBase()}${relative.replace(/^\//, '')}`;
+}
+
+function assetCandidates(relative: string): string[] {
+  const normalizedBase = assetBase();
   const candidates = [
     `${normalizedBase}${relative}`,
     `/${relative}`,
@@ -233,4 +213,14 @@ export function downloadEdb(document: EdbDocument): void {
   anchor.download = `${document.id.replace(/^edb-/, '')}.edb`;
   anchor.click();
   URL.revokeObjectURL(url);
+}
+
+/** The EPUB build of this document, if the static library was published. */
+export function epubAssetUrl(bookId: string): string {
+  return assetUrl(`epub/${bookId.replace(/^edb-/, '')}.epub`);
+}
+
+/** Static catalogue of every EPUB (works even if the app itself fails). */
+export function epubCatalogUrl(): string {
+  return assetUrl('epub/index.html');
 }

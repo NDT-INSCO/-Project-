@@ -10,6 +10,7 @@
  */
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
+import { validateEpub } from '../src/epub/validate';
 
 const BASE = '/-Project-/';
 const docs = path.resolve(process.cwd(), 'docs');
@@ -77,7 +78,44 @@ if (!existsSync(edbIndexPath)) {
   note(`EDB: ${books.length} books, ${books.reduce((sum, book) => sum + (book.pages || 0), 0)} pages`);
 }
 
-// 4) Size budget for the first payload
+// 4) EPUB library
+const epubDir = path.join(docs, 'epub');
+const epubIndexPath = path.join(epubDir, 'index.json');
+if (!existsSync(epubIndexPath)) {
+  fail('docs/epub/index.json is missing: the EPUB downloads would 404');
+} else {
+  const index = JSON.parse(readFileSync(epubIndexPath, 'utf8')) as {
+    format?: string;
+    books?: { id: string; file: string; bytes: number }[];
+  };
+  const books = index.books || [];
+  if (index.format !== 'EPUB-INDEX') fail('docs/epub/index.json has an unexpected format');
+  if (books.length === 0) fail('docs/epub/index.json lists no books');
+  for (const book of books) {
+    const file = path.join(epubDir, book.file);
+    if (!existsSync(file)) {
+      fail(`docs/epub/${book.file} is listed in the index but missing`);
+      continue;
+    }
+    const buffer = readFileSync(file);
+    if (buffer.length !== book.bytes) {
+      fail(`docs/epub/${book.file} is ${buffer.length} bytes, the index says ${book.bytes}`);
+    }
+    const result = validateEpub(buffer);
+    if (!result.valid) fail(`docs/epub/${book.file} is not a valid EPUB: ${result.errors[0]}`);
+  }
+  const catalog = path.join(epubDir, 'index.html');
+  if (!existsSync(catalog)) fail('docs/epub/index.html (static catalogue) is missing');
+  else {
+    const html = readFileSync(catalog, 'utf8');
+    for (const book of books) {
+      if (!html.includes(book.file)) fail(`the EPUB catalogue does not link ${book.file}`);
+    }
+  }
+  note(`EPUB: ${books.length} books, ${(books.reduce((sum, book) => sum + book.bytes, 0) / 1024).toFixed(0)} KiB`);
+}
+
+// 5) Size budget for the first payload
 const assetsDir = path.join(docs, 'assets');
 if (existsSync(assetsDir)) {
   const html = readFileSync(indexPath, 'utf8');

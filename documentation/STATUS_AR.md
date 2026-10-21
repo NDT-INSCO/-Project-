@@ -10,7 +10,8 @@
 ```bash
 npm install        # يتطلب Node 22 أو أحدث (jsdom 30 ← undici 8 يحتاج zstd)
 npm run dev        # معاينة على المنفذ 3000
-npm run verify     # lint + الاختبارات + EDB + الروابط + build + site:check
+npm run verify     # lint + الاختبارات + EDB + EPUB + الروابط + build + site:check
+npm run epub:build # بناء نسخة EPUB (Kindle/Kobo/Apple Books)
 ```
 
 `npm run verify` هو بوابة الدمج. لا تعتمد على `npm run build` وحده:
@@ -128,7 +129,8 @@ documentation/
 | مصادر القراءة | 77 (76 nde-ed.org + 1 asnt.org) |
 | مستندات EDB | 18 (11 كتاباً + 7 مقررات) |
 | صفحات EDB | 157 |
+| كتب EPUB 3 | 18 (نفس المصدر، 552 KiB) |
 | مهام عملية | 8 في 6 طرق |
 | مسارات تعلم | 3 |
-| مجموعات الاختبار | 14 |
-| اختبارات | 112 |
+| مجموعات الاختبار | 15 |
+| اختبارات | 128 |
