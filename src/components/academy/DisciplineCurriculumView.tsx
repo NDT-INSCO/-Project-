@@ -6,6 +6,11 @@ interface DisciplineCurriculumViewProps {
   disciplineId?: string;
   levelIdx?: number;
   moduleId?: string;
+  /** Deep-link target names used by the academy container. */
+  targetDisciplineId?: string;
+  targetLevelIdx?: number;
+  targetModuleId?: string;
+  onLaunchFlashcards?: (disciplineId: string, moduleId?: string) => void;
   onLaunchQuiz?: (disciplineId: string, levelId?: string, moduleId?: string, moduleTitle?: { ar: string; en: string }) => void;
 }
 

@@ -130,7 +130,7 @@ export const KnowledgeLeaderboard: React.FC<KnowledgeLeaderboardProps> = ({
 
   // Focus Timer Tick effect
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setTimeout> | null = null;
     if (isTimerRunning && secondsRemaining > 0) {
       interval = setInterval(() => {
         setSecondsRemaining(prev => prev - 1);

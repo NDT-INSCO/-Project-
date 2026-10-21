@@ -1,4 +1,5 @@
 import { EngineeringDiscipline } from '../types';
+import { conventionalNdtLevel1 } from '../levels/conventionalLevel1';
 
 export const conventionalNdtDiscipline: EngineeringDiscipline = {
   id: 'conventional_ndt',
@@ -178,6 +179,10 @@ export const conventionalNdtDiscipline: EngineeringDiscipline = {
     },
 
     // -------------------------------------------------------------------------
+    // LEVEL 1: PROFESSIONAL TECHNICIAN STAGE (المستوى الأول المهني)
+    // -------------------------------------------------------------------------
+    conventionalNdtLevel1,
+
     // LEVEL 2: CERTIFIED INSPECTOR & EVALUATOR (المستوى الثاني المهني المعتمد)
     // -------------------------------------------------------------------------
     {

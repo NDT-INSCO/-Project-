@@ -4,6 +4,8 @@ import { Language } from '../../types';
 interface CurriculumLevelProgressTrackerProps {
   language: Language;
   onNavigate?: (disciplineId: string, levelIdx: number, moduleId?: string) => void;
+  onNavigateToModule?: (disciplineId: string, levelIdx: number, moduleId?: string) => void;
+  onNavigateToCertificates?: () => void;
   onLaunchQuiz?: (disciplineId: string, levelId?: string, moduleId?: string, moduleTitle?: { ar: string; en: string }) => void;
 }
 

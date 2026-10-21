@@ -1,12 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { EducationalAcademy } from './components/EducationalAcademy';
 import { Language } from './types';
 import { Globe, GraduationCap } from 'lucide-react';
 
+const LANGUAGE_KEY = 'insco_language_v1';
+
+function readLanguage(): Language {
+  try {
+    return localStorage.getItem(LANGUAGE_KEY) === 'en' ? 'en' : 'ar';
+  } catch {
+    return 'ar';
+  }
+}
+
 export const App: React.FC = () => {
-  const [language, setLanguage] = useState<Language>('ar');
+  const [language, setLanguage] = useState<Language>(readLanguage);
 
   const isAr = language === 'ar';
+
+  // The static document is authored as Arabic/RTL. Without this the <html>
+  // element keeps lang="ar" dir="rtl" after switching to English, which breaks
+  // screen-reader pronunciation and browser translation on the English UI.
+  useEffect(() => {
+    document.documentElement.lang = language;
+    document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+    try {
+      localStorage.setItem(LANGUAGE_KEY, language);
+    } catch {
+      /* private mode: language simply resets on reload */
+    }
+  }, [language, isAr]);
 
   return (
     <div dir={isAr ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-950">

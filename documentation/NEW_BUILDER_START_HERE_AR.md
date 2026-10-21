@@ -48,8 +48,26 @@ npm run dev            # http://localhost:3000
 
 ## 7. التحقق قبل كل دفع
 ```bash
-npm run lint && npm run test:academy && npm run build
+npm run verify
 ```
+ويشغّل: `tsc --noEmit` ← كل الاختبارات (7 مجموعات) ← `edb:check` ← `vite build`.
+
+## 7.1 ما أُضيف بعد آخر تحديث
+
+- **مقررات NDE-Ed**: 7 مقررات / 35 درساً في `src/data/ndeEd/` مع مصادر
+  `nde-ed.org` (77 رابطاً) — تبويب `courses`.
+- **مكتبة EDB**: 18 مستنداً (11 كتاباً + 7 مقررات) في `public/edb/` — تبويب `edb`.
+  التوثيق: `documentation/EDB_FORMAT_AR.md`.
+- **منهج Level 1**: خمس وحدات طرق في `src/data/curriculum/levels/conventionalLevel1.ts`،
+  ووحدة ET في `src/data/academyCurriculum.ts`.
+- **إفادة التعلم الذاتي**: `CurriculumCertificatesView` — ليست شهادة ولا اعتماداً.
+- **خطة المراجعة**: `documentation/NDE_ED_REVIEW_AR.md` (تعيين Level III معلّق).
+- **CI**: `.github/workflows/verify.yml` يشغّل lint + tests + edb:check + links:check + build.
+- **مسارات التعلم**: `src/data/learningPaths.ts` + تبويب `paths`.
+- **التقييم العملي**: `PracticalAssessmentView` + `src/data/practicalAssessment.ts` (8 مهام، 6 طرق).
+- **مراقبة الروابط**: `scripts/check-links.ts` + `.github/workflows/link-monitor.yml` (أسبوعي).
+- **سجل المراجعة**: `src/data/ndeEd/review.ts` — كل المقررات `pending` حتى التوقيع.
+- **ملف الحالة الكامل**: `documentation/STATUS_AR.md` (ما تم، ما بقي، وكيف تتحقق).
 
 ## 8. قراءة إضافية
 - `docs/HANDOVER_AR.md` — دليل التسليم (14 قسم).

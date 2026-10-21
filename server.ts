@@ -71,7 +71,10 @@ async function startServer() {
   if (!isProduction) {
     const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      // Dev is served at the preview root, so it must not inherit the GitHub
+      // Pages `/-Project-/` base. Production builds still use the file config.
+      base: '/',
+      server: { middlewareMode: true, allowedHosts: true },
       appType: 'spa',
     });
     app.use(vite.middlewares);

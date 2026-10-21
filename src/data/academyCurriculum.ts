@@ -30,9 +30,82 @@ export const ENGINEERING_DISCIPLINES: EngineeringDiscipline[] = [
         experienceMonths: 3,
         internationalCerts: ['ASNT Level I'],
         applicableCodes: ['ASME Sec V'],
-        responsibilitiesAr: ['تنفيذ الفحص وتسجيل النتائج'],
-        responsibilitiesEn: ['Perform testing and record results'],
-        modules: []
+        responsibilitiesAr: ['تنفيذ الفحص وتسجيل النتائج', 'ضبط إعدادات الحزمة والمسح وفق الإجراء المعتمد'],
+        responsibilitiesEn: ['Perform testing and record results', 'Set beam and scan parameters to the approved procedure'],
+        modules: [
+          {
+            id: 'mod_adv_ut',
+            titleAr: 'وحدة PAUT/TOFD: التوجيه الإلكتروني وتحديد الأبعاد بالحيود',
+            titleEn: 'Module PAUT/TOFD: Electronic Beam Steering and Diffraction Sizing',
+            duration: '32 ساعة (12 نظري + 20 عملي)',
+            topicsAr: [
+              'بنية المسبار المصفوفي: العناصر، الميل، والتأخير الزمني لكل عنصر (Focal Laws)',
+              'التوجيه الإلكتروني والتركيز: حساب زاوية الحزمة وعمق البؤرة',
+              'المعايرة على كتل ASTM/ISO المخصصة للمصفوفة والتحقق من التغطية',
+              'TOFD: هندسة الإرسال والاستقبال، إشارات الرأس والطرف السفلي والعلوي',
+              'قياس ارتفاع العيب: المسافة الزمنية بين إشارات الأطراف وحدود الدقة',
+              'الحدود: حساسية TOFD للعيوب القريبة من السطح، وتأثر PAUT بجودة الاقتران'
+            ],
+            topicsEn: [
+              'Array probe anatomy: elements, pitch, and per-element focal laws',
+              'Electronic steering and focusing: beam angle and focal depth calculation',
+              'Calibration on dedicated ASTM/ISO array blocks and coverage verification',
+              'TOFD: transmitter-receiver geometry and lateral, back-wall and tip diffracted signals',
+              'Flaw height sizing from tip signal time separation and its accuracy limits',
+              'Limits: TOFD near-surface dead zone, and PAUT sensitivity to coupling quality'
+            ],
+            learningOutcomesAr: [
+              'يبرمج قانون تركيز لحزمة 55° على عمق 30 mm ويؤكد التغطية على كتلة معايرة',
+              'يفسر صورة S-scan ويحدد مؤشراً طرفياً',
+              'يقيس ارتفاع عيب بـ TOFD ويقدّر الخطأ من زمن النبضة',
+              'يكتب بيان حدود للطريقة قبل تسليم النتائج'
+            ],
+            learningOutcomesEn: [
+              'Program a 55° focal law at 30 mm depth and confirm coverage on a calibration block',
+              'Interpret an S-scan image and identify a tip diffraction indication',
+              'Size a flaw height with TOFD and estimate error from pulse duration',
+              'Write a method-limits statement before delivering results'
+            ],
+            quizId: 'ut-advanced-q1'
+          },
+          {
+            id: 'mod_adv_et',
+            titleAr: 'وحدة ET: التيارات الدوامية للأسطح والأنابيب',
+            titleEn: 'Module ET: Eddy Current Testing of Surfaces and Tubing',
+            duration: '32 ساعة (12 نظري + 20 عملي)',
+            topicsAr: [
+              'الحث الكهرومغناطيسي وعمق الاختراق ومعادلة δ',
+              'المسابر المطلقة والتفاضلية وملفات bobbin وpancake',
+              'المستوي الممانعي وقراءة الطور وتقدير العمق',
+              'مراجع المعايرة والترشيح والترددات المتعددة',
+              'كشف الشروخ السطحية وفحص الأنابيب وقياس الموصلية',
+              'حدود ET: المواد الموصلة فقط، النفاذية، رفع الملف، الإشارات الهندسية'
+            ],
+            topicsEn: [
+              'Electromagnetic induction, depth of penetration and the δ equation',
+              'Absolute, differential, bobbin and pancake coils',
+              'The impedance plane, phase reading and depth estimation',
+              'Reference calibration, filtering and multiple frequencies',
+              'Surface crack detection, tube inspection and conductivity measurement',
+              'ET limits: conductive materials only, permeability, lift-off, geometric signals'
+            ],
+            learningOutcomesAr: [
+              'يحسب عمق الاختراق ويختار التردد المناسب لتطبيق محدد',
+              'يعاير مسباراً على عيب مرجعي ويقرأ إشارة على المستوي الممانعي',
+              'يمسح سطحاً باتجاهين ويكشف شرخاً سطحياً موضعياً',
+              'يفصل إشارة دعم أنبوب عن إشارة عيب بتردد أو طور مختلف',
+              'يكتب بيان حدود ET قبل تسليم أي نتيجة'
+            ],
+            learningOutcomesEn: [
+              'Calculate depth of penetration and select a suitable frequency for a given application',
+              'Calibrate a probe on a reference flaw and read the impedance-plane signal',
+              'Scan a surface in two directions and detect a local surface crack',
+              'Separate a tube support signal from a flaw using another frequency or phase',
+              'Write an ET limits statement before delivering any result'
+            ],
+            quizId: 'et-principles-q1'
+          }
+        ]
       }
     ]
   },

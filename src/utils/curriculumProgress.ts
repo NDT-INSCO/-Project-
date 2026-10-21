@@ -1,5 +1,30 @@
-import { db, auth } from '../firebase/config';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+/**
+ * Firebase is loaded on demand: the academy works fully offline from
+ * localStorage, so bundling the SDK into the first payload (and printing an
+ * auth error when no API key is set) is a cost with no benefit.
+ */
+type FirebaseHandle = {
+  db: import('firebase/firestore').Firestore;
+  auth: import('firebase/auth').Auth | null;
+} | null;
+
+let firebaseHandlePromise: Promise<FirebaseHandle> | null = null;
+
+function getFirebase(): Promise<FirebaseHandle> {
+  if (!firebaseHandlePromise) {
+    firebaseHandlePromise = (async (): Promise<FirebaseHandle> => {
+      try {
+        const config = await import('../firebase/config');
+        const db = config.db;
+        if (!config.isFirebaseConfigured || !db) return null;
+        return { db, auth: config.auth };
+      } catch {
+        return null;
+      }
+    })();
+  }
+  return firebaseHandlePromise;
+}
 
 const COMPLETED_MODULES_KEY = 'insco_academy_completed_modules';
 const COMPLETED_TOPICS_KEY = 'insco_academy_completed_topics_v1';
@@ -127,13 +152,15 @@ export async function syncTopicsToFirestore(
   topics: string[], 
   disciplineId?: string
 ): Promise<FirestoreSyncStatus> {
-  if (!db) {
-    return { synced: false, error: 'Firestore offline' };
+  const firebase = await getFirebase();
+  if (!firebase?.db) {
+    return { synced: false, error: 'Cloud sync is not configured; progress stays local' };
   }
 
   try {
-    const userId = auth?.currentUser?.uid || getLocalUserId();
-    const docRef = doc(db, 'user_module_progress', `${userId}_${moduleId}`);
+    const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+    const userId = firebase.auth?.currentUser?.uid || getLocalUserId();
+    const docRef = doc(firebase.db, 'user_module_progress', `${userId}_${moduleId}`);
 
     await setDoc(docRef, {
       userId,
@@ -153,10 +180,12 @@ export async function syncTopicsToFirestore(
 }
 
 export async function syncModuleToFirestore(moduleId: string, score: number): Promise<void> {
-  if (!db) return;
+  const firebase = await getFirebase();
+  if (!firebase?.db) return;
   try {
-    const userId = auth?.currentUser?.uid || getLocalUserId();
-    const docRef = doc(db, 'user_module_progress', `${userId}_${moduleId}`);
+    const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+    const userId = firebase.auth?.currentUser?.uid || getLocalUserId();
+    const docRef = doc(firebase.db, 'user_module_progress', `${userId}_${moduleId}`);
     await setDoc(docRef, {
       userId,
       moduleId,
