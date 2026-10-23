@@ -51,18 +51,20 @@ import { NDE_ED_COURSES } from '../data/ndeEd';
 import { LEARNING_PATHS } from '../data/learningPaths';
 import { NDT_TEXTBOOKS } from '../data/ndeTextbooksData';
 import { EdbLibraryView } from './academy/EdbLibraryView';
+import { PautInspectorController } from './academy/PautInspectorController';
+import { ComprehensiveWeldUtSimulator } from './academy/virtuallab/ComprehensiveWeldUtSimulator';
 
 export type SubTab =
   | 'knowledge' | 'encyclopedia' | 'curriculum' | 'courses' | 'paths' | 'edb'
   | 'flashcards' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards'
   | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'practical' | 'leaderboard'
-  | 'completion_map' | 'roadmap' | 'certification_center';
+  | 'completion_map' | 'roadmap' | 'certification_center' | 'paut_controller' | 'weld_simulator';
 
 export const SUB_TABS: SubTab[] = [
   'knowledge', 'encyclopedia', 'curriculum', 'courses', 'paths', 'edb',
   'flashcards', 'workshops', 'defects', 'pwht_curve', 'methods', 'standards',
   'quiz', 'ask_ai', 'video_gen', 'certificates', 'practical', 'leaderboard',
-  'completion_map', 'roadmap', 'certification_center',
+  'completion_map', 'roadmap', 'certification_center', 'paut_controller', 'weld_simulator',
 ];
 
 interface EducationalAcademyProps {
@@ -365,18 +367,18 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             {/* Hub 4: Thermal & Defect Simulators */}
             <button
               onClick={() => {
-                if (activeSubTab !== 'defects' && activeSubTab !== 'pwht_curve') {
-                  setActiveSubTab('defects');
+                if (activeSubTab !== 'defects' && activeSubTab !== 'pwht_curve' && activeSubTab !== 'paut_controller' && activeSubTab !== 'weld_simulator') {
+                  setActiveSubTab('weld_simulator');
                 }
               }}
               className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeSubTab === 'defects' || activeSubTab === 'pwht_curve'
+                activeSubTab === 'defects' || activeSubTab === 'pwht_curve' || activeSubTab === 'paut_controller' || activeSubTab === 'weld_simulator'
                   ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.01]'
                   : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'
               }`}
             >
-              <Activity className={`w-4 h-4 ${activeSubTab === 'defects' || activeSubTab === 'pwht_curve' ? 'text-slate-950' : 'text-amber-400'}`} />
-              <span className="truncate">{isAr ? 'محاكيات اللحام و PWHT' : 'Defect & PWHT Sim'}</span>
+              <Activity className={`w-4 h-4 ${activeSubTab === 'defects' || activeSubTab === 'pwht_curve' || activeSubTab === 'paut_controller' || activeSubTab === 'weld_simulator' ? 'text-slate-950' : 'text-amber-400'}`} />
+              <span className="truncate">{isAr ? 'المحاكيات وأجهزة الفحص' : 'Simulators & Devices'}</span>
             </button>
 
             {/* Hub 5: Codes, Methods & AI Professor */}
@@ -514,9 +516,31 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             </div>
           )}
 
-          {/* Child Sub-Segment Pills for Hub 3: Simulators */}
-          {(activeSubTab === 'defects' || activeSubTab === 'pwht_curve') && (
-            <div className="flex items-center justify-center gap-2 animate-fadeIn">
+          {/* Child Sub-Segment Pills for Hub 4: Simulators & Devices */}
+          {(activeSubTab === 'defects' || activeSubTab === 'pwht_curve' || activeSubTab === 'paut_controller' || activeSubTab === 'weld_simulator') && (
+            <div className="flex flex-wrap items-center justify-center gap-2 animate-fadeIn">
+              <button
+                onClick={() => setActiveSubTab('weld_simulator')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'weld_simulator'
+                    ? 'bg-cyan-500 text-slate-950 font-black shadow-md'
+                    : 'bg-[#10132b] text-cyan-400 hover:text-cyan-200 border border-cyan-500/30'
+                }`}
+              >
+                <Compass className="w-3.5 h-3.5" />
+                <span>{isAr ? 'محاكي فحص اللحام وتتبع الأشعة والكود' : 'Weld UT Ray Tracing & Codes'}</span>
+              </button>
+              <button
+                onClick={() => setActiveSubTab('paut_controller')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'paut_controller'
+                    ? 'bg-amber-500 text-slate-950 font-black shadow-md'
+                    : 'bg-[#10132b] text-amber-400 hover:text-amber-200 border border-amber-500/30'
+                }`}
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                <span>{isAr ? 'جهاز تحكم PAUT الميداني (Inspector Controller)' : 'PAUT Inspector Controller'}</span>
+              </button>
               <button
                 onClick={() => setActiveSubTab('defects')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
@@ -797,6 +821,16 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
         {/* Sub-Tab 0B: Interactive Hands-on Visual Workbenches */}
         {activeSubTab === 'workshops' && (
           <InteractiveWorkshops language={language} />
+        )}
+
+        {/* Sub-Tab 0C: PAUT Inspector Controller Device */}
+        {activeSubTab === 'paut_controller' && (
+          <PautInspectorController language={language} />
+        )}
+
+        {/* Sub-Tab 0D: Comprehensive Weld UT Ray Tracing & Defect Evaluation */}
+        {activeSubTab === 'weld_simulator' && (
+          <ComprehensiveWeldUtSimulator language={language} />
         )}
 
         {/* Sub-Tab 1: Defect Diagnostic Simulator */}
