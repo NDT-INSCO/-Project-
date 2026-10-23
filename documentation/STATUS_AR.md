@@ -1,6 +1,6 @@
 # حالة الأكاديمية — بعد إضافة EDB ومقررات NDE-Ed والتقييم العملي
 
-> آخر تحديث: 2026-10-21 · الفرع `arena/8c16ed4e-project`
+> آخر تحديث: 2026-10-23 · الفرع `arena/eecca733-project`
 > هذا الملف يجيب على سؤال واحد: **ما المنفَّذ فعلاً، وما المتبقي، وكيف أتحقق؟**
 
 ---
@@ -32,6 +32,11 @@ npm run epub:build # بناء نسخة EPUB (Kindle/Kobo/Apple Books)
 | `practical` | `PracticalAssessmentView` | `src/data/practicalAssessment.ts` | `insco_practical_assessment_v1` |
 | `certificates` | `CurriculumCertificatesView` | يقرأ كل ما سبق | `insco_self_study_name_v1` |
 | `certification_center` | `CertificationCenter` (قائم) | `certificationExamService` | `insco_exam_registrations_v1` |
+| `ask_ai` | لوحة المستشار داخل `EducationalAcademy` | `src/ai/*` + بوابة `server.ts` | لا يخزّن |
+
+**المستشار الذكي:** بحث محلي في 132 وثيقة، ثم إجابة مبثوثة من الخادم مع
+استشهادات حقيقية. بلا مفتاح على الخادم يقول ذلك صراحةً ولا يطبع نصاً جاهزاً.
+التفاصيل الكاملة في `documentation/AI_STUDIO_AR.md`.
 
 **فصل المسؤوليات:** تقدم المنهج (`curriculumProgress`) منفصل تماماً عن تقدم
 المقررات و EDB والتقييم العملي. لا يكتب أي منها في مفتاح الآخر.
@@ -92,11 +97,20 @@ src/
   components/academy/     NdeEdCourseCatalog, EdbFlipbook, EdbLibraryView,
                           PracticalAssessmentView, LearningPathsView,
                           CurriculumCertificatesView
+src/ai/
+  contract.ts             النماذج والحدود وأحداث SSE وأكواد الخطأ
+  corpus.ts               بناء الوثائق الـ132 من بيانات الكتب والمقررات
+  search.ts               تطبيع عربي + BM25 + مرادفات + عتبة 4.2
+  client.ts               نداء البوابة من المتصفح (بلا مفتاح)
+  transport.ts            Interactions API أولاً ثم الاحتياط القديم
+  synonyms.ts             مرادفات NDT ثنائية اللغة
+server.ts                 يستضيف SPA + بوابة /api/ai/*
 scripts/
   build-edb.ts            بناء المكتبة + --check
   check-links.ts          فحص الروابط (بنية + وصول)
 public/edb/               18 مستنداً مولّداً + index.json
 documentation/
+  AI_STUDIO_AR.md         المستشار الذكي: Interactions API والتكلفة والنشر
   EDB_FORMAT_AR.md        صيغة EDB بالتفصيل
   NDE_ED_REVIEW_AR.md     إجراء المراجعة والتوقيع
   STATUS_AR.md            هذا الملف
@@ -128,6 +142,7 @@ documentation/
 | الدروس | 35 |
 | مصادر القراءة | 77 (76 nde-ed.org + 1 asnt.org) |
 | مستندات EDB | 18 (11 كتاباً + 7 مقررات) |
+| وثائق البحث (المستشار) | 132 (90 صفحة + 7 نظرات عامة + 35 درساً) |
 | صفحات EDB | 157 |
 | كتب EPUB 3 | 18 (نفس المصدر، 552 KiB) |
 | مهام عملية | 8 في 6 طرق |

@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { EducationalAcademy } from './components/EducationalAcademy';
+import React, { Suspense, useEffect, useState } from 'react';
 import { CompanyPortal } from './components/company/CompanyPortal';
 import { Language } from './types';
+import { AcademyTab, readAcademyTab } from './academyTabs';
 import { INSCO_COMPANY_DATA } from './data/inscoCompanyData';
 import { 
   Globe, 
@@ -15,6 +15,30 @@ import {
   Award
 } from 'lucide-react';
 
+// The academy carries the whole NDT library (textbooks, encyclopedia, quizzes,
+// the AI index). Visitors landing on the company profile must not download it,
+// so it is split out and fetched when the academy is actually opened.
+const EducationalAcademy = React.lazy(() =>
+  import('./components/EducationalAcademy').then(module => ({ default: module.EducationalAcademy }))
+);
+
+function AcademyLoading({ isAr }: { isAr: boolean }) {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-8"
+    >
+      <div className="h-4 w-40 animate-pulse rounded bg-slate-700/70" />
+      <div className="h-3 w-2/3 animate-pulse rounded bg-slate-800" />
+      <div className="h-3 w-1/2 animate-pulse rounded bg-slate-800" />
+      <p className="pt-2 text-xs text-slate-400">
+        {isAr ? 'جارٍ تحميل مكتبة الأكاديمية…' : 'Loading the academy library…'}
+      </p>
+    </div>
+  );
+}
+
 const LANGUAGE_KEY = 'insco_language_v1';
 
 function readLanguage(): Language {
@@ -27,8 +51,14 @@ function readLanguage(): Language {
 
 export const App: React.FC = () => {
   const [language, setLanguage] = useState<Language>(readLanguage);
-  const [currentView, setCurrentView] = useState<'company' | 'academy'>('company');
-  const [academySubTab, setAcademySubTab] = useState<any>('encyclopedia');
+  // A shared link such as `/-Project-/#courses` must open the academy, not the
+  // company profile with an ignored hash.
+  const [currentView, setCurrentView] = useState<'company' | 'academy'>(() =>
+    readAcademyTab(window.location.hash) ? 'academy' : 'company'
+  );
+  const [academySubTab, setAcademySubTab] = useState<AcademyTab | undefined>(() =>
+    readAcademyTab(window.location.hash)
+  );
 
   const isAr = language === 'ar';
   const ArrowIcon = isAr ? ArrowLeft : ArrowRight;
@@ -43,7 +73,7 @@ export const App: React.FC = () => {
     }
   }, [language, isAr]);
 
-  const handleNavigateToAcademy = (initialSubTab?: any) => {
+  const handleNavigateToAcademy = (initialSubTab?: AcademyTab) => {
     if (initialSubTab) {
       setAcademySubTab(initialSubTab);
     }
@@ -51,8 +81,26 @@ export const App: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Back/forward between a cleared hash and a shared academy link.
+  useEffect(() => {
+    const onHashChange = () => {
+      const tab = readAcademyTab(window.location.hash);
+      if (tab) {
+        setAcademySubTab(tab);
+        setCurrentView('academy');
+      }
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
   const handleNavigateToCompany = (sectionId?: string) => {
     setCurrentView('company');
+    // The hash belongs to the academy. Leaving it behind would make the address
+    // bar claim the reader is still on `#edb` while the company page is shown.
+    if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
     if (sectionId) {
       setTimeout(() => {
         const el = document.getElementById(sectionId);
@@ -239,10 +287,12 @@ export const App: React.FC = () => {
             </div>
 
             {/* Mount Full Educational Academy */}
-            <EducationalAcademy
-              language={language}
-              initialSubTab={academySubTab}
-            />
+            <Suspense fallback={<AcademyLoading isAr={isAr} />}>
+              <EducationalAcademy
+                language={language}
+                initialSubTab={academySubTab}
+              />
+            </Suspense>
           </div>
         )}
       </main>

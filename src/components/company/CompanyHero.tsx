@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { Language } from '../../types';
 import { INSCO_COMPANY_DATA } from '../../data/inscoCompanyData';
 import { FileText, ArrowRight, ArrowLeft, ShieldCheck, Zap, Award, Layers, Sparkles, Activity, Eye } from 'lucide-react';
-import { InteractiveInspectionHologram } from './InteractiveInspectionHologram';
+// three.js is ~1 MB. It powers a decorative 3D hologram, so it must not sit in
+// the first payload of a page that mostly serves text.
+const InteractiveInspectionHologram = React.lazy(() =>
+  import('./InteractiveInspectionHologram').then(module => ({ default: module.InteractiveInspectionHologram }))
+);
 
 interface CompanyHeroProps {
   language: Language;
@@ -203,7 +207,9 @@ export const CompanyHero: React.FC<CompanyHeroProps> = ({
               </div>
             ) : (
               <div className="rounded-2xl overflow-hidden">
-                <InteractiveInspectionHologram language={language} />
+                <Suspense fallback={<div className="h-[420px] animate-pulse rounded-2xl border border-slate-800 bg-slate-900/60" />}>
+                  <InteractiveInspectionHologram language={language} />
+                </Suspense>
               </div>
             )}
 
