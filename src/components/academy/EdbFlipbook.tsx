@@ -39,6 +39,8 @@ interface EdbFlipbookProps {
   book: EdbDocument;
   onClose: () => void;
   onOpenLab?: (labId: string) => void;
+  /** 1-based page to open at; search results and tutor citations use it. */
+  initialPageNumber?: number;
 }
 
 const FLIP_MS = 460;
@@ -398,10 +400,11 @@ const PageSurface: React.FC<PageSurfaceProps> = ({
   );
 };
 
-export const EdbFlipbook: React.FC<EdbFlipbookProps> = ({ language, book, onClose, onOpenLab }) => {
+export const EdbFlipbook: React.FC<EdbFlipbookProps> = ({ language, book, onClose, onOpenLab, initialPageNumber }) => {
   const isAr = language === 'ar';
   const initialProgress = useMemo(() => getEdbProgress(book.id), [book.id]);
-  const initialIndex = Math.min(Math.max(initialProgress.lastPage - 1, 0), book.pages.length - 1);
+  const requested = typeof initialPageNumber === 'number' ? initialPageNumber - 1 : initialProgress.lastPage - 1;
+  const initialIndex = Math.min(Math.max(requested, 0), book.pages.length - 1);
 
   const [pageIndex, setPageIndex] = useState(initialIndex);
   const [flipPage, setFlipPage] = useState<EdbPage | null>(null);
