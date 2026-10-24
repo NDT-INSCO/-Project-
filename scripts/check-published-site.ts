@@ -8,7 +8,7 @@
  * `public/` and still ship broken if the published folder is stale, incomplete,
  * or references the wrong base. These checks run offline.
  */
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { validateEpub } from '../src/epub/validate';
 
@@ -128,6 +128,24 @@ if (existsSync(assetsDir)) {
     else if (kb > 1200) note(`entry bundle ${ref} is ${kb.toFixed(0)} KB — consider code-splitting`);
     else note(`entry bundle ${ref} is ${kb.toFixed(0)} KB`);
   }
+}
+
+// 6) No bundle may reference a dev-server path. `/src/...` only exists while
+//    Vite runs in dev; the built folder has no `src/` directory, so such a
+//    reference is a guaranteed 404 on Pages (that is how the hero photos broke).
+if (existsSync(assetsDir)) {
+  let scanned = 0;
+  for (const name of readdirSync(assetsDir)) {
+    if (!name.endsWith('.js')) continue;
+    const file = path.join(assetsDir, name);
+    const bundle = readFileSync(file, 'utf8');
+    scanned += 1;
+    const hits = [...bundle.matchAll(/['"`](\/src\/[^'"`]*)['"`]/g)].map(match => match[1]);
+    for (const hit of new Set(hits)) {
+      fail(`${name} references the dev-only path ${hit} (use assetUrl from src/utils/assetUrl)`);
+    }
+  }
+  note(`bundles scanned for dev paths: ${scanned}`);
 }
 
 console.log(`Published site check (${BASE})`);

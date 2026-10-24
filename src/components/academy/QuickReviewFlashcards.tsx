@@ -288,7 +288,7 @@ export const QuickReviewFlashcards: React.FC<QuickReviewFlashcardsProps> = ({
 
           {/* Confidence Actions */}
           <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0d122c] border border-slate-800 p-4 rounded-xl">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-slate-400">{isAr ? 'تقييم الحفظ:' : 'Rate confidence:'}</span>
               <button
                 onClick={() => saveConfidence(currentCard.id, 'hard')}
@@ -337,29 +337,32 @@ export const QuickReviewFlashcards: React.FC<QuickReviewFlashcardsProps> = ({
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex items-center justify-between gap-4 pt-2">
+          {/* `min-w-0` + truncation lets the three buttons shrink on a 360 px
+              phone; without it the row was 2 px wider than the screen and RTL
+              pushed the "previous" button off the start edge. */}
+          <div className="flex items-center justify-between gap-2 sm:gap-4 pt-2">
             <button
               onClick={handlePrev}
-              className="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors border border-slate-700"
+              className="min-w-0 flex-1 py-3 px-3 sm:px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors border border-slate-700"
             >
-              <ChevronLeft className={`w-4 h-4 ${isAr ? 'rotate-180' : ''}`} />
-              <span>{isAr ? 'البطاقة السابقة' : 'Previous Card'}</span>
+              <ChevronLeft className={`w-4 h-4 shrink-0 ${isAr ? 'rotate-180' : ''}`} />
+              <span className="truncate">{isAr ? 'البطاقة السابقة' : 'Previous Card'}</span>
             </button>
 
             <button
               onClick={() => setIsFlipped(prev => !prev)}
-              className="py-3 px-6 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-sm flex items-center gap-2 transition-colors"
+              className="shrink-0 py-3 px-4 sm:px-6 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-sm flex items-center gap-2 transition-colors"
             >
-              <RotateCw className="w-4 h-4" />
-              <span>{isAr ? 'اقلب البطاقة' : 'Flip Card'}</span>
+              <RotateCw className="w-4 h-4 shrink-0" />
+              <span className="truncate">{isAr ? 'اقلب البطاقة' : 'Flip Card'}</span>
             </button>
 
             <button
               onClick={handleNext}
-              className="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors border border-slate-700"
+              className="min-w-0 flex-1 py-3 px-3 sm:px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-medium text-sm flex items-center justify-center gap-2 transition-colors border border-slate-700"
             >
-              <span>{isAr ? 'البطاقة التالية' : 'Next Card'}</span>
-              <ChevronRight className={`w-4 h-4 ${isAr ? 'rotate-180' : ''}`} />
+              <span className="truncate">{isAr ? 'البطاقة التالية' : 'Next Card'}</span>
+              <ChevronRight className={`w-4 h-4 shrink-0 ${isAr ? 'rotate-180' : ''}`} />
             </button>
           </div>
         </div>

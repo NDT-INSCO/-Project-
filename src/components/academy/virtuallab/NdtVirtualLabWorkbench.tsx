@@ -78,11 +78,11 @@ export const NdtVirtualLabWorkbench: React.FC<NdtVirtualLabWorkbenchProps> = ({ 
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 lg:justify-end">
             <button
               type="button"
               onClick={() => setActiveLabMode('weld_ray_tracing')}
-              className={`px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 border whitespace-nowrap ${
+              className={`px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 border text-start whitespace-normal sm:whitespace-nowrap ${
                 activeLabMode === 'weld_ray_tracing'
                   ? 'bg-cyan-600 text-white border-cyan-400 shadow-lg shadow-cyan-950/50'
                   : 'bg-slate-950 text-slate-300 border-slate-800 hover:text-white hover:border-slate-700'
@@ -95,7 +95,7 @@ export const NdtVirtualLabWorkbench: React.FC<NdtVirtualLabWorkbenchProps> = ({ 
             <button
               type="button"
               onClick={() => setActiveLabMode('ut_conventional')}
-              className={`px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 border whitespace-nowrap ${
+              className={`px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 border text-start whitespace-normal sm:whitespace-nowrap ${
                 activeLabMode === 'ut_conventional'
                   ? 'bg-cyan-600 text-white border-cyan-400 shadow-lg shadow-cyan-950/50'
                   : 'bg-slate-950 text-slate-300 border-slate-800 hover:text-white hover:border-slate-700'
@@ -108,7 +108,7 @@ export const NdtVirtualLabWorkbench: React.FC<NdtVirtualLabWorkbenchProps> = ({ 
             <button
               type="button"
               onClick={() => setActiveLabMode('paut_phased_array')}
-              className={`px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 border whitespace-nowrap ${
+              className={`px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 border text-start whitespace-normal sm:whitespace-nowrap ${
                 activeLabMode === 'paut_phased_array'
                   ? 'bg-amber-500 text-slate-950 font-black border-amber-400 shadow-lg shadow-amber-950/50'
                   : 'bg-slate-950 text-slate-300 border-slate-800 hover:text-white hover:border-slate-700'
@@ -121,7 +121,7 @@ export const NdtVirtualLabWorkbench: React.FC<NdtVirtualLabWorkbenchProps> = ({ 
             <button
               type="button"
               onClick={() => setActiveLabMode('beam_cone_defects')}
-              className={`px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 border whitespace-nowrap ${
+              className={`px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 border text-start whitespace-normal sm:whitespace-nowrap ${
                 activeLabMode === 'beam_cone_defects'
                   ? 'bg-purple-600 text-white border-purple-400 shadow-lg shadow-purple-950/50'
                   : 'bg-slate-950 text-slate-300 border-slate-800 hover:text-white hover:border-slate-700'
@@ -134,7 +134,7 @@ export const NdtVirtualLabWorkbench: React.FC<NdtVirtualLabWorkbenchProps> = ({ 
             <button
               type="button"
               onClick={() => setActiveLabMode('dac_builder')}
-              className={`px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 border whitespace-nowrap ${
+              className={`px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition cursor-pointer flex items-center gap-2 border text-start whitespace-normal sm:whitespace-nowrap ${
                 activeLabMode === 'dac_builder'
                   ? 'bg-emerald-600 text-white border-emerald-400 shadow-lg shadow-emerald-950/50'
                   : 'bg-slate-950 text-slate-300 border-slate-800 hover:text-white hover:border-slate-700'

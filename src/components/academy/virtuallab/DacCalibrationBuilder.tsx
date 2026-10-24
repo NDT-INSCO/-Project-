@@ -1197,7 +1197,7 @@ export const DacCalibrationBuilder: React.FC<DacCalibrationBuilderProps> = ({
                 </span>
               </div>
 
-              <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+              <div className="flex flex-wrap items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
                 <button
                   type="button"
                   onClick={() => setTargetMode('calibration_block')}

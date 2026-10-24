@@ -23,6 +23,7 @@ import {
   Send,
   Sliders,
   Sparkles,
+  TrendingDown,
   Trophy,
   Wrench,
   XCircle,
@@ -65,6 +66,14 @@ import { NDT_TEXTBOOKS } from '../data/ndeTextbooksData';
 import { EdbLibraryView } from './academy/EdbLibraryView';
 import { PautInspectorController } from './academy/PautInspectorController';
 import { ComprehensiveWeldUtSimulator } from './academy/virtuallab/ComprehensiveWeldUtSimulator';
+import { DacCalibrationBuilder } from './academy/virtuallab/DacCalibrationBuilder';
+import { WorkshopTrainingResultsPanel } from './academy/virtuallab/WorkshopTrainingResultsPanel';
+import {
+  DefectToleranceModal,
+  DefectToleranceTooltip,
+  mapEducationalDefectToCatalogId,
+} from './academy/virtuallab/DefectToleranceAlertSystem';
+import type { InspectionCodeId } from '../data/utWeldDefectsCatalog';
 
 export type SubTab = AcademyTab;
 
@@ -151,6 +160,11 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
 
   // Defect Simulator State
   const [selectedDefect, setSelectedDefect] = useState<EducationalDefect>(EDUCATIONAL_DEFECTS[0]);
+  // The diagnostic tab shares the engineering catalogue's tolerance engine with
+  // the weld simulator, so a defect name always gets the same code limits.
+  const [defectToleranceOpen, setDefectToleranceOpen] = useState(false);
+  const [defectToleranceCode, setDefectToleranceCode] = useState<InspectionCodeId>('asme_viii');
+  const DEFECT_SAMPLE_THICKNESS_MM = 20;
 
   // PWHT Simulator State
   const [steelGrade, setSteelGrade] = useState<'P1' | 'P4_P5' | 'P91'>('P1');
@@ -429,12 +443,12 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             {/* Hub 4: Thermal & Defect Simulators */}
             <button
               onClick={() => {
-                if (activeSubTab !== 'defects' && activeSubTab !== 'pwht_curve' && activeSubTab !== 'paut_controller' && activeSubTab !== 'weld_simulator') {
+                if (!['defects', 'pwht_curve', 'paut_controller', 'weld_simulator', 'dac_builder'].includes(activeSubTab)) {
                   setActiveSubTab('weld_simulator');
                 }
               }}
               className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeSubTab === 'defects' || activeSubTab === 'pwht_curve' || activeSubTab === 'paut_controller' || activeSubTab === 'weld_simulator'
+                ['defects', 'pwht_curve', 'paut_controller', 'weld_simulator', 'dac_builder'].includes(activeSubTab)
                   ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.01]'
                   : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'
               }`}
@@ -579,7 +593,7 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
           )}
 
           {/* Child Sub-Segment Pills for Hub 4: Simulators & Devices */}
-          {(activeSubTab === 'defects' || activeSubTab === 'pwht_curve' || activeSubTab === 'paut_controller' || activeSubTab === 'weld_simulator') && (
+          {(['defects', 'pwht_curve', 'paut_controller', 'weld_simulator', 'dac_builder'] as SubTab[]).includes(activeSubTab) && (
             <div className="flex flex-wrap items-center justify-center gap-2 animate-fadeIn">
               <button
                 onClick={() => setActiveSubTab('weld_simulator')}
@@ -624,6 +638,17 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               >
                 <Flame className="w-3.5 h-3.5 text-orange-400" />
                 <span>{isAr ? 'محاكي منحنيات PWHT الحرارية' : 'PWHT Thermal Curve'}</span>
+              </button>
+              <button
+                onClick={() => setActiveSubTab('dac_builder')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'dac_builder'
+                    ? 'bg-emerald-500 text-slate-950 font-black shadow-md'
+                    : 'bg-[#10132b] text-emerald-400 hover:text-emerald-200 border border-emerald-500/30'
+                }`}
+              >
+                <TrendingDown className="w-3.5 h-3.5" />
+                <span>{isAr ? 'مختبر منحنى المعايرة DAC' : 'ASME DAC Curve Builder'}</span>
               </button>
             </div>
           )}
@@ -893,7 +918,16 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
 
         {/* Sub-Tab 0D: Comprehensive Weld UT Ray Tracing & Defect Evaluation */}
         {activeSubTab === 'weld_simulator' && (
-          <ComprehensiveWeldUtSimulator language={language} />
+          <div className="space-y-6">
+            <ComprehensiveWeldUtSimulator language={language} />
+            {/* Live competency scorecard belongs with the simulator that feeds it. */}
+            <WorkshopTrainingResultsPanel language={language} />
+          </div>
+        )}
+
+        {/* Sub-Tab 0E: Standalone ASME DAC Curve Builder (linked from global search) */}
+        {activeSubTab === 'dac_builder' && (
+          <DacCalibrationBuilder language={language} />
         )}
 
         {/* Sub-Tab 1: Defect Diagnostic Simulator */}
@@ -916,9 +950,18 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
                 {EDUCATIONAL_DEFECTS.map((defect) => {
                   const isSelected = selectedDefect.id === defect.id;
                   return (
-                    <button
+                    <DefectToleranceTooltip
                       key={defect.id}
-                      onClick={() => setSelectedDefect(defect)}
+                      defectId={mapEducationalDefectToCatalogId(defect.id)}
+                      activeCode={defectToleranceCode}
+                      thicknessMm={DEFECT_SAMPLE_THICKNESS_MM}
+                      language={language}
+                    >
+                    <button
+                      onClick={() => {
+                        setSelectedDefect(defect);
+                        setDefectToleranceOpen(true);
+                      }}
                       className={`w-full text-start p-3.5 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
                         isSelected
                           ? 'bg-[#1d224e] border-amber-400 text-white shadow-md'
@@ -943,6 +986,7 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
                         {defect.severity}
                       </span>
                     </button>
+                    </DefectToleranceTooltip>
                   );
                 })}
               </div>
@@ -1015,6 +1059,17 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
                 </div>
               </div>
             </div>
+
+            {/* Visual multi-standard tolerance alert for the selected defect */}
+            <DefectToleranceModal
+              isOpen={defectToleranceOpen}
+              onClose={() => setDefectToleranceOpen(false)}
+              defectId={mapEducationalDefectToCatalogId(selectedDefect.id)}
+              activeCode={defectToleranceCode}
+              onSelectCode={setDefectToleranceCode}
+              thicknessMm={DEFECT_SAMPLE_THICKNESS_MM}
+              language={language}
+            />
           </div>
         )}
 
