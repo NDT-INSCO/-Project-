@@ -51,7 +51,7 @@ export const CompanyPortal: React.FC<CompanyPortalProps> = ({
   return (
     <div className="space-y-0">
       {/* Mobile Sticky Quick Jump Strip */}
-      <div className="xl:hidden sticky top-[57px] z-40 bg-slate-950/95 backdrop-blur border-b border-slate-800/80 px-4 py-2 overflow-x-auto scrollbar-none flex items-center gap-1.5">
+      <div className="xl:hidden sticky top-[var(--insco-header-h,3.75rem)] z-40 bg-slate-950/95 backdrop-blur border-b border-slate-800/80 px-4 py-2 overflow-x-auto scrollbar-none flex items-center gap-1.5">
         {quickNav.map((item) => (
           <button
             key={item.id}

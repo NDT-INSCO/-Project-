@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Language } from '../../types';
 import { INSCO_COMPANY_DATA } from '../../data/inscoCompanyData';
+import { assetUrl } from '../../utils/assetUrl';
 import { 
   Flame, 
   Wrench, 
@@ -29,9 +30,9 @@ export const CompanyServicesSection: React.FC<CompanyServicesSectionProps> = ({
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [selectedMethodId, setSelectedMethodId] = useState<string>('UT');
 
-  const pwhtImagePath = '/src/assets/images/pwht_heat_treatment_1792692336668.jpg';
-  const rtImagePath = '/src/assets/images/radiography_gamma_scan_1792692355717.jpg';
-  const pautImagePath = '/src/assets/images/paut_flaw_detector_1792692369481.jpg';
+  const pwhtImagePath = assetUrl('images/pwht-heat-treatment.jpg');
+  const rtImagePath = assetUrl('images/radiography-gamma-scan.jpg');
+  const pautImagePath = assetUrl('images/paut-flaw-detector.jpg');
 
   const categories = [
     { id: 'all', label: { ar: 'كافة الخدمات والفحوصات (12)', en: 'All Services (12)' } },
@@ -137,6 +138,8 @@ export const CompanyServicesSection: React.FC<CompanyServicesSectionProps> = ({
               <img
                 src={pwhtImagePath}
                 alt={isAr ? 'عملية المعالجة الحرارية بعد اللحام PWHT' : 'PWHT post weld heat treatment operation'}
+                loading="lazy"
+                decoding="async"
                 referrerPolicy="no-referrer"
                 className="w-full h-64 sm:h-72 object-cover transition duration-700 group-hover:scale-105"
               />
@@ -269,6 +272,8 @@ export const CompanyServicesSection: React.FC<CompanyServicesSectionProps> = ({
                   <img
                     src={rtImagePath}
                     alt={isAr ? 'جهاز التصوير الإشعاعي الصناعي جاما' : 'Industrial gamma radiographic testing device'}
+                    loading="lazy"
+                    decoding="async"
                     referrerPolicy="no-referrer"
                     className="w-full h-48 object-cover transition duration-500 group-hover:scale-102"
                   />
@@ -283,6 +288,8 @@ export const CompanyServicesSection: React.FC<CompanyServicesSectionProps> = ({
                   <img
                     src={pautImagePath}
                     alt={isAr ? 'جهاز فحص الموجات فوق الصوتية والمصفوفات الطورية' : 'Phased array ultrasonic flaw detector S-scan'}
+                    loading="lazy"
+                    decoding="async"
                     referrerPolicy="no-referrer"
                     className="w-full h-48 object-cover transition duration-500 group-hover:scale-102"
                   />

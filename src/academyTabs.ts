@@ -11,6 +11,7 @@ export const ACADEMY_TABS = [
   'flashcards', 'workshops', 'defects', 'pwht_curve', 'methods', 'standards',
   'quiz', 'ask_ai', 'video_gen', 'certificates', 'practical', 'leaderboard',
   'completion_map', 'roadmap', 'certification_center', 'paut_controller', 'weld_simulator',
+  'dac_builder',
 ] as const;
 
 export type AcademyTab = (typeof ACADEMY_TABS)[number];

@@ -40,3 +40,17 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #475569;
 }
+/* Sticky chrome covers the top of the viewport: without a scroll margin an
+   in-page anchor (#services, #projects…) lands its heading underneath the
+   header. Mobile also carries the quick-jump strip, hence the larger offset. */
+[id] {
+  /* header + the mobile quick-jump strip that sticks underneath it */
+  scroll-margin-top: calc(var(--insco-header-h, 3.75rem) + 2.75rem);
+}
+
+@media (min-width: 1280px) {
+  [id] {
+    /* no quick-jump strip on wide screens: the two-row header is the only chrome */
+    scroll-margin-top: calc(var(--insco-header-h, 6.75rem) + 0.75rem);
+  }
+}

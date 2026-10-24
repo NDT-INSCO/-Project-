@@ -1,6 +1,7 @@
 import React, { Suspense, useState } from 'react';
 import { Language } from '../../types';
 import { INSCO_COMPANY_DATA } from '../../data/inscoCompanyData';
+import { assetUrl } from '../../utils/assetUrl';
 import { FileText, ArrowRight, ArrowLeft, ShieldCheck, Zap, Award, Layers, Sparkles, Activity, Eye } from 'lucide-react';
 // three.js is ~1 MB. It powers a decorative 3D hologram, so it must not sit in
 // the first payload of a page that mostly serves text.
@@ -23,7 +24,9 @@ export const CompanyHero: React.FC<CompanyHeroProps> = ({
   const ArrowIcon = isAr ? ArrowLeft : ArrowRight;
   const [activeVisualMode, setActiveVisualMode] = useState<'photo' | '3d'>('photo');
 
-  const heroImagePath = '/src/assets/images/hero_ndt_inspection_1792692322245.jpg';
+  // Public files must go through the Vite base: the site is served from
+  // `/-Project-/` on GitHub Pages, so a root-absolute `/src/...` path 404s there.
+  const heroImagePath = assetUrl('images/hero-ndt-inspection.jpg');
 
   return (
     <section className="relative overflow-hidden pt-8 pb-16 border-b border-slate-800">

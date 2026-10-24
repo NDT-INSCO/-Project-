@@ -288,7 +288,7 @@ export const QuickReviewFlashcards: React.FC<QuickReviewFlashcardsProps> = ({
 
           {/* Confidence Actions */}
           <div className="flex flex-wrap items-center justify-between gap-3 bg-[#0d122c] border border-slate-800 p-4 rounded-xl">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="text-xs text-slate-400">{isAr ? 'تقييم الحفظ:' : 'Rate confidence:'}</span>
               <button
                 onClick={() => saveConfidence(currentCard.id, 'hard')}

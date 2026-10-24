@@ -1,8 +1,9 @@
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { CompanyPortal } from './components/company/CompanyPortal';
 import { Language } from './types';
 import { AcademyTab, readAcademyTab } from './academyTabs';
 import { INSCO_COMPANY_DATA } from './data/inscoCompanyData';
+import { GlobalHeaderSearch } from './components/GlobalHeaderSearch';
 import { 
   Globe, 
   GraduationCap, 
@@ -73,6 +74,27 @@ export const App: React.FC = () => {
     }
   }, [language, isAr]);
 
+  // The header is sticky and its height changes between breakpoints (one row on
+  // phones, two on wide screens). Anything that has to sit right below it — the
+  // mobile quick-jump strip, in-page anchor jumps — reads this variable instead
+  // of a hard-coded pixel value that drifts out of sync.
+  const headerRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    const header = headerRef.current;
+    if (!header) return;
+    const publish = () => {
+      document.documentElement.style.setProperty('--insco-header-h', `${Math.round(header.getBoundingClientRect().height)}px`);
+    };
+    publish();
+    if (typeof ResizeObserver === 'undefined') {
+      window.addEventListener('resize', publish);
+      return () => window.removeEventListener('resize', publish);
+    }
+    const observer = new ResizeObserver(publish);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
+
   const handleNavigateToAcademy = (initialSubTab?: AcademyTab) => {
     if (initialSubTab) {
       setAcademySubTab(initialSubTab);
@@ -116,36 +138,90 @@ export const App: React.FC = () => {
   return (
     <div dir={isAr ? 'rtl' : 'ltr'} className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
       {/* Persistent Corporate Top Bar Contract */}
-      <header className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/95 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-6">
-          {/* Zone 1: Single Brand Element Wordmark */}
-          <button
-            type="button"
-            aria-label={isAr ? 'الرئيسية - شركة إنسكو' : 'INSCO Home Profile'}
-            onClick={() => handleNavigateToCompany()}
-            className="flex items-center gap-2.5 text-start cursor-pointer group"
-          >
-            <div className="p-2 rounded-lg bg-cyan-600/10 border border-cyan-500/30 text-cyan-400 group-hover:border-cyan-400 transition">
-              <Building2 className="w-5 h-5" />
-            </div>
-            <div className="whitespace-nowrap">
-              <div className="text-base sm:text-lg font-black text-white tracking-tight">
-                {isAr ? 'الشركة الدولية للخدمات والمقاولات - إنسكو' : 'INSCO Industrial'}
+      <header ref={headerRef} className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/95 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5">
+          {/* Row 1: brand · global search · actions. Every child may shrink:
+              the previous fixed-width row was wider than the viewport, which in
+              RTL pushed the brand and the language switch off the left edge and
+              gave the whole document a horizontal scrollbar. */}
+          <div className="flex items-center gap-2.5 sm:gap-4">
+            {/* Zone 1: Single Brand Element Wordmark */}
+            <button
+              type="button"
+              aria-label={isAr ? 'الرئيسية - شركة إنسكو' : 'INSCO Home Profile'}
+              onClick={() => handleNavigateToCompany()}
+              className="flex min-w-0 items-center gap-2.5 text-start cursor-pointer group"
+            >
+              <div className="p-2 shrink-0 rounded-lg bg-cyan-600/10 border border-cyan-500/30 text-cyan-400 group-hover:border-cyan-400 transition">
+                <Building2 className="w-5 h-5" />
               </div>
-              <div className="text-[11px] font-mono text-cyan-400 flex items-center gap-1.5">
-                <span>{isAr ? 'أكاديمية إنسكو NDT' : 'INSCO NDT Academy'}</span>
-                <span aria-hidden="true" className="text-slate-600">·</span>
-                <span>CP/2026-10</span>
+              <div className="min-w-0">
+                <div className="truncate text-sm sm:text-base xl:text-lg font-black text-white tracking-tight">
+                  <span className="sm:hidden">{isAr ? 'إنسكو' : 'INSCO'}</span>
+                  <span className="hidden sm:inline">
+                    {isAr ? 'الشركة الدولية للخدمات والمقاولات - إنسكو' : 'INSCO Industrial'}
+                  </span>
+                </div>
+                <div className="hidden md:flex truncate text-[11px] font-mono text-cyan-400 items-center gap-1.5">
+                  <span>{isAr ? 'أكاديمية إنسكو NDT' : 'INSCO NDT Academy'}</span>
+                  <span aria-hidden="true" className="text-slate-600">·</span>
+                  <span>CP/2026-10</span>
+                </div>
               </div>
-            </div>
-          </button>
+            </button>
 
-          {/* Zone 2: Clean Single-line Navigation Links */}
-          <nav className="hidden xl:flex items-center gap-5 text-xs font-semibold text-slate-300">
+            {/* Zone 2: Global search across services, academy modules and company info */}
+            <div className="min-w-0 flex-1 sm:max-w-[16rem] lg:max-w-xs xl:max-w-sm">
+              <GlobalHeaderSearch
+                language={language}
+                onNavigateToCompany={handleNavigateToCompany}
+                onNavigateToAcademy={handleNavigateToAcademy}
+              />
+            </div>
+
+            {/* Zone 3: Primary Action & Language Toggle */}
+            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+              {currentView === 'company' ? (
+                <a
+                  href={INSCO_COMPANY_DATA.pdfBrochureUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition whitespace-nowrap"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'بروشور PDF' : 'Brochure PDF'}</span>
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleNavigateToCompany()}
+                  className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-semibold border border-slate-700 transition whitespace-nowrap cursor-pointer"
+                >
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>{isAr ? 'بوابة الشركة' : 'Corporate Portal'}</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setLanguage(isAr ? 'en' : 'ar')}
+                aria-label={isAr ? 'Switch to English' : 'التبديل إلى العربية'}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-700 text-xs text-slate-200 hover:bg-slate-800 transition cursor-pointer whitespace-nowrap"
+              >
+                <Globe className="w-3.5 h-3.5" />
+                <span className="font-semibold hidden sm:inline">{isAr ? 'English' : 'العربية'}</span>
+                <span className="font-semibold sm:hidden">{isAr ? 'EN' : 'ع'}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Row 2: Section navigation. It gets its own line so the links can
+              wrap instead of overflowing on a 1280–1440 px screen. */}
+          <nav className="mt-2 hidden xl:flex flex-wrap items-center justify-center gap-x-5 gap-y-1 border-t border-slate-800/70 pt-2 text-xs font-semibold text-slate-300">
             <button
               type="button"
               onClick={() => handleNavigateToCompany()}
-              className={`hover:text-cyan-400 transition whitespace-nowrap cursor-pointer ${
+              className={`py-0.5 hover:text-cyan-400 transition whitespace-nowrap cursor-pointer ${
                 currentView === 'company' ? 'text-cyan-400 font-bold' : ''
               }`}
             >
@@ -155,7 +231,7 @@ export const App: React.FC = () => {
             <button
               type="button"
               onClick={() => handleNavigateToCompany('services')}
-              className="hover:text-cyan-400 transition whitespace-nowrap cursor-pointer"
+              className="py-0.5 hover:text-cyan-400 transition whitespace-nowrap cursor-pointer"
             >
               {isAr ? 'الخدمات وأسطول PWHT' : 'Services & Fleet'}
             </button>
@@ -163,7 +239,7 @@ export const App: React.FC = () => {
             <button
               type="button"
               onClick={() => handleNavigateToCompany('certifications')}
-              className="hover:text-cyan-400 transition whitespace-nowrap cursor-pointer"
+              className="py-0.5 hover:text-cyan-400 transition whitespace-nowrap cursor-pointer"
             >
               {isAr ? 'شهادات الجودة (ISO)' : 'Accreditations'}
             </button>
@@ -171,7 +247,7 @@ export const App: React.FC = () => {
             <button
               type="button"
               onClick={() => handleNavigateToCompany('projects')}
-              className="hover:text-cyan-400 transition whitespace-nowrap cursor-pointer"
+              className="py-0.5 hover:text-cyan-400 transition whitespace-nowrap cursor-pointer"
             >
               {isAr ? 'سابقة الأعمال' : 'Track Record'}
             </button>
@@ -179,15 +255,15 @@ export const App: React.FC = () => {
             <button
               type="button"
               onClick={() => handleNavigateToCompany('testimonials')}
-              className="hover:text-cyan-400 transition whitespace-nowrap cursor-pointer flex items-center gap-1"
+              className="py-0.5 hover:text-cyan-400 transition whitespace-nowrap cursor-pointer"
             >
-              <span>{isAr ? 'آراء العملاء' : 'Testimonials'}</span>
+              {isAr ? 'آراء العملاء' : 'Testimonials'}
             </button>
 
             <button
               type="button"
               onClick={() => handleNavigateToCompany('hologram-lab')}
-              className="hover:text-cyan-400 transition whitespace-nowrap cursor-pointer"
+              className="py-0.5 hover:text-cyan-400 transition whitespace-nowrap cursor-pointer"
             >
               {isAr ? 'المختبر ثلاثي الأبعاد (3D)' : '3D Lab'}
             </button>
@@ -195,7 +271,7 @@ export const App: React.FC = () => {
             <button
               type="button"
               onClick={() => handleNavigateToCompany('vault')}
-              className="hover:text-cyan-400 transition whitespace-nowrap cursor-pointer"
+              className="py-0.5 hover:text-cyan-400 transition whitespace-nowrap cursor-pointer"
             >
               {isAr ? 'ملف التأهيل (PDF)' : 'Vendor Vault'}
             </button>
@@ -213,39 +289,6 @@ export const App: React.FC = () => {
               <span>{isAr ? 'أكاديمية إنسكو' : 'INSCO Academy'}</span>
             </button>
           </nav>
-
-          {/* Zone 3: Primary Action & Language Toggle */}
-          <div className="flex items-center gap-2.5 shrink-0">
-            {currentView === 'company' ? (
-              <a
-                href={INSCO_COMPANY_DATA.pdfBrochureUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold transition whitespace-nowrap"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                <span>{isAr ? 'بروشور PDF' : 'Brochure PDF'}</span>
-              </a>
-            ) : (
-              <button
-                type="button"
-                onClick={() => handleNavigateToCompany()}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-semibold border border-slate-700 transition whitespace-nowrap cursor-pointer"
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                <span>{isAr ? 'بوابة الشركة' : 'Corporate Portal'}</span>
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setLanguage(isAr ? 'en' : 'ar')}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-700 text-xs text-slate-200 hover:bg-slate-800 transition cursor-pointer"
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span className="font-semibold">{isAr ? 'English' : 'العربية'}</span>
-            </button>
-          </div>
         </div>
       </header>
 

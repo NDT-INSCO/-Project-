@@ -147,7 +147,7 @@ export const GlobalHeaderSearch: React.FC<GlobalHeaderSearchProps> = ({
   const JumpIcon = isAr ? ArrowUpLeft : ArrowUpRight;
 
   return (
-    <div ref={containerRef} role="search" className="relative w-full xl:w-52 2xl:w-64">
+    <div ref={containerRef} role="search" className="relative w-full">
       <div className="relative flex items-center">
         <Search
           aria-hidden="true"
@@ -210,9 +210,9 @@ export const GlobalHeaderSearch: React.FC<GlobalHeaderSearchProps> = ({
       {isOpen && (
         <div
           id="global-header-search-results"
-          className={`absolute top-full mt-2 w-full sm:w-[400px] ${
-            isAr ? 'left-0 sm:right-0 sm:left-auto' : 'left-0 sm:right-0 sm:left-auto'
-          } rounded-xl border border-slate-800 bg-slate-950 shadow-2xl shadow-black/70 z-50 overflow-hidden`}
+          /* Phone: pinned under the header, full width, so it can never hang off
+             the edge. Wider screens: a normal dropdown anchored to the field. */
+          className="fixed inset-x-2 top-[calc(var(--insco-header-h,3.75rem)+0.35rem)] xl:absolute xl:inset-x-auto xl:top-full xl:mt-2 xl:start-0 xl:w-[26rem] rounded-xl border border-slate-800 bg-slate-950 shadow-2xl shadow-black/70 z-50 overflow-hidden"
         >
           {/* Category Filter Strip */}
           <div className="flex items-center justify-between gap-1 px-3 py-2 border-b border-slate-800/90 bg-slate-900/60">
