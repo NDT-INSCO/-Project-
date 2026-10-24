@@ -152,6 +152,29 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
     return () => window.removeEventListener('hashchange', applyHash);
   }, []);
 
+  // A shared link carries the tab in the hash. Scroll straight to the tab body
+  // once on mount so the reader does not have to scroll past the cover to find
+  // the section that was linked.
+  const deepLinkLanding = React.useRef({ pending: Boolean(readAcademyTab(window.location.hash)), done: false });
+  React.useEffect(() => {
+    if (!deepLinkLanding.current.pending || deepLinkLanding.current.done) return;
+    const target = document.getElementById('academy-content');
+    if (!target) return;
+    const scrollToTab = () => {
+      deepLinkLanding.current.done = true;
+      const top = target.getBoundingClientRect().top + window.scrollY - 8;
+      window.scrollTo({ top, behavior: 'instant' as ScrollBehavior });
+    };
+    // jsdom (tests) has no rAF; it also has no layout to wait for.
+    if (typeof requestAnimationFrame !== 'function') {
+      scrollToTab();
+      return;
+    }
+    const frame = requestAnimationFrame(scrollToTab);
+    // StrictMode mounts effects twice; keep the flag until the scroll happens.
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   React.useEffect(() => {
     if (window.location.hash.replace(/^#/, '') === activeSubTab) return;
     // replaceState keeps the back button clean while still updating the URL.
@@ -776,6 +799,12 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             </div>
           )}
         </div>
+
+        {/* Deep links such as `#courses` or `#edb` must land on the requested
+            content, not on the academy cover: the cover plus the hub switcher is
+            taller than a phone screen. This marker is what the effect below
+            scrolls to, once, when the page is opened from such a link. */}
+        <div id="academy-content" aria-hidden="true" />
 
         {/* Persistent Curriculum Level Progress Tracking HUD */}
         <div className="mb-8">
