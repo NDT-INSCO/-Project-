@@ -134,6 +134,26 @@ git show HEAD:docs/assets/index-BPeG-TVI.js | grep -o "['\"\`]/src/[^'\"\`]*['\"
 
 بعد الإصلاح: **0 تجاوز** في الـ24 مساراً على 1440 و390، بالعربية والإنجليزية.
 
+### 2.8 متوسطة — `npm start` (وضع الإنتاج) يعيد 404 لكل صفحة
+
+`server.ts` في وضع الإنتاج كان يخدم `dist/` بينما `vite build` يكتب في `docs/`
+(وهو المجلد الذي ينشره GitHub Pages). بعد أي بناء صحيح، كل طلب في وضع الإنتاج
+كان يرجع 404.
+
+**الإصلاح:** يخدم `docs/` (قابل للتغيير بـ `STATIC_DIR`)، ويُركّب نفس المجلد على
+البادئة `/-Project-` حتى يحاكي النشر الحقيقي. تحقّق:
+
+```
+/                                            -> 200
+/-Project-/                                  -> 200
+/-Project-/images/hero-ndt-inspection.jpg    -> 200 image/jpeg
+/-Project-/assets/aistudio/…pdf              -> 200 application/pdf
+/-Project-/edb/index.json                    -> 200 application/json
+/-Project-/epub/book-vt.epub                 -> 200 application/epub+zip
+```
+
+وبعد تمرير الصفحة كاملة في المتصفح: **0 صورة مكسورة و0 طلب فاشل**.
+
 ---
 
 ## 3. الاختبارات

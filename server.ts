@@ -12,6 +12,7 @@ import express from 'express';
 import type { Request, Response } from 'express';
 import { createServer } from 'http';
 import path from 'path';
+import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { GoogleGenAI } from '@google/genai';
@@ -435,10 +436,21 @@ async function startServer(): Promise<void> {
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.resolve(__dirname, 'dist');
-    app.use(express.static(distPath));
+    // `vite build` writes to `docs/` (that is what GitHub Pages publishes), not
+    // to `dist/`. Serving the wrong folder is why `npm start` used to answer 404
+    // for every route after a build. The build is also emitted with the Pages
+    // base `/-Project-/`, so the same files are mounted at that prefix — `npm
+    // start` then behaves like the published site instead of only at `/`.
+    const staticDir = path.resolve(__dirname, process.env.STATIC_DIR || 'docs');
+    const pagesBase = process.env.PAGES_BASE || '/-Project-';
+    const indexFile = path.join(staticDir, 'index.html');
+    if (!existsSync(indexFile)) {
+      console.error(`[static] ${staticDir}/index.html not found — run \`npm run build\` first.`);
+    }
+    app.use(pagesBase, express.static(staticDir));
+    app.use(express.static(staticDir));
     app.get('*', (_req, res) => {
-      res.sendFile(path.resolve(distPath, 'index.html'));
+      res.sendFile(indexFile);
     });
   }
 
