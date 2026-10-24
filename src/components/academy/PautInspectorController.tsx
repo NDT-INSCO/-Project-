@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Language, EducationalDefect } from '../../types';
 import { EDUCATIONAL_DEFECTS } from '../../data/inscoData';
+import { recordSimulationAttempt } from '../../utils/simulationHistoryStore';
 import { 
   Sliders, 
   Activity, 
@@ -16,7 +17,8 @@ import {
   Maximize2,
   Volume2,
   VolumeX,
-  Target
+  Target,
+  ClipboardCheck
 } from 'lucide-react';
 
 interface PautInspectorControllerProps {
@@ -49,6 +51,8 @@ export const PautInspectorController: React.FC<PautInspectorControllerProps> = (
   // UI state
   const [isFrozen, setIsFrozen] = useState<boolean>(false);
   const [showFocalBeamRay, setShowFocalBeamRay] = useState<boolean>(true);
+  const [traineeVerdict, setTraineeVerdict] = useState<'ACCEPT' | 'REJECT'>('REJECT');
+  const [historySavedToast, setHistorySavedToast] = useState<string | null>(null);
 
   // Canvas references
   const aScanCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -761,18 +765,108 @@ export const PautInspectorController: React.FC<PautInspectorControllerProps> = (
               </div>
             </div>
 
-            {/* Metallurgical Defect Evaluation Notes */}
-            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5">
-              <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-cyan-400" />
-                <span>{isAr ? 'طبيعة العيب المستهدف:' : 'Target Discontinuity Nature:'}</span>
+            {/* Metallurgical Defect Evaluation Notes & Simulation History Logger */}
+            <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+              <div className="space-y-1.5">
+                <div className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>{isAr ? 'طبيعة العيب المستهدف:' : 'Target Discontinuity Nature:'}</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  {currentDefect.nature[language]}
+                </p>
+                <div className="text-[10px] text-slate-500 pt-1 border-t border-slate-800/80">
+                  <span>{isAr ? 'كود القبول المرجعي: ' : 'Standard Code: '}</span>
+                  <strong className="text-cyan-300">{currentDefect.acceptanceCriteriaCode}</strong>
+                </div>
               </div>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
-                {currentDefect.nature[language]}
-              </p>
-              <div className="text-[10px] text-slate-500 pt-1 border-t border-slate-800/80">
-                <span>{isAr ? 'كود القبول المرجعي: ' : 'Standard Code: '}</span>
-                <strong className="text-cyan-300">{currentDefect.acceptanceCriteriaCode}</strong>
+
+              <div className="pt-2.5 border-t border-slate-800 space-y-2">
+                <div className="text-[11px] text-slate-300 font-bold">
+                  {isAr ? 'تقييم المتدرب وتسجيل المحاولة:' : 'Trainee Disposition & Log Attempt:'}
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setTraineeVerdict('ACCEPT')}
+                    className={`py-1.5 rounded-lg border font-bold text-[11px] transition cursor-pointer ${
+                      traineeVerdict === 'ACCEPT'
+                        ? 'bg-emerald-600 text-white border-emerald-400'
+                        : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+                    }`}
+                  >
+                    ACCEPT
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTraineeVerdict('REJECT')}
+                    className={`py-1.5 rounded-lg border font-bold text-[11px] transition cursor-pointer ${
+                      traineeVerdict === 'REJECT'
+                        ? 'bg-rose-600 text-white border-rose-400'
+                        : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+                    }`}
+                  >
+                    REJECT
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const actualVerdict: 'ACCEPT' | 'REJECT' = isAsmeReject ? 'REJECT' : 'ACCEPT';
+                    const isCorrect = traineeVerdict === actualVerdict;
+                    const attemptStatus = isCorrect ? 'PASS' : 'FAIL';
+                    const pautAccuracyPct = Math.min(
+                      100,
+                      (isCorrect ? 60 : 15) +
+                        Math.round(angularResponse * 25) +
+                        Math.round(Math.max(0, 1 - depthDiff / 30) * 15)
+                    );
+                    const rec = recordSimulationAttempt({
+                      simulatorId: 'paut_controller',
+                      targetSubTab: 'paut_controller',
+                      simulatorTitle: {
+                        ar: 'وحدة تحكم مفتش المصفوفات الطورية (PAUT Controller)',
+                        en: 'PAUT Inspector Controller',
+                      },
+                      ndtMethod: 'PAUT',
+                      defectTypes: [
+                        {
+                          id: currentDefect.id,
+                          ar: currentDefect.name.ar,
+                          en: currentDefect.name.en,
+                        },
+                      ],
+                      status: attemptStatus,
+                      codeVerdict: actualVerdict,
+                      traineeVerdict,
+                      codeStandard: currentDefect.acceptanceCriteriaCode,
+                      scorePct: pautAccuracyPct,
+                      measuredDepthMm: defectModel.nominalDepthMm,
+                      notes: {
+                        ar: `زاوية الشعاع ${beamAngleDeg}° · عمق بؤري ${focalDepthMm}مم · سعة الصدى ${signalAmplitudePct}% FSH`,
+                        en: `Beam ${beamAngleDeg}° · Focal depth ${focalDepthMm}mm · Echo ${signalAmplitudePct}% FSH`,
+                      },
+                    });
+                    setHistorySavedToast(
+                      isAr
+                        ? `تم حفظ المحاولة في سجل المحاكاة (${rec.status} · +${rec.xpEarned} XP)`
+                        : `Attempt saved to Simulation History (${rec.status} · +${rec.xpEarned} XP)`
+                    );
+                  }}
+                  className="w-full py-2 px-3 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-[11px] transition cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <ClipboardCheck className="w-3.5 h-3.5" />
+                  <span>
+                    {isAr ? 'تسجيل المحاولة في سجل المحاكاة' : 'Record Attempt to Simulation History'}
+                  </span>
+                </button>
+
+                {historySavedToast && (
+                  <div className="text-[10.5px] text-emerald-300 font-semibold text-center">
+                    {historySavedToast}
+                  </div>
+                )}
               </div>
             </div>
           </div>

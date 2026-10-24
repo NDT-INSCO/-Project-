@@ -1,5 +1,6 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { CompanyPortal } from './components/company/CompanyPortal';
+import { GlobalHeaderSearch } from './components/GlobalHeaderSearch';
 import { Language } from './types';
 import { AcademyTab, readAcademyTab } from './academyTabs';
 import { INSCO_COMPANY_DATA } from './data/inscoCompanyData';
@@ -213,6 +214,15 @@ export const App: React.FC = () => {
               <span>{isAr ? 'أكاديمية إنسكو' : 'INSCO Academy'}</span>
             </button>
           </nav>
+
+          {/* Global Header Search Bar next to navigation links */}
+          <div className="flex-1 max-w-xs hidden md:block">
+            <GlobalHeaderSearch
+              language={language}
+              onNavigateToCompany={handleNavigateToCompany}
+              onNavigateToAcademy={handleNavigateToAcademy}
+            />
+          </div>
 
           {/* Zone 3: Primary Action & Language Toggle */}
           <div className="flex items-center gap-2.5 shrink-0">

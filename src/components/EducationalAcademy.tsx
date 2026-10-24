@@ -13,6 +13,7 @@ import {
   Flame,
   GraduationCap,
   HelpCircle,
+  History,
   Info,
   Layers,
   Library,
@@ -23,6 +24,7 @@ import {
   Send,
   Sliders,
   Sparkles,
+  TrendingDown,
   Trophy,
   Wrench,
   XCircle,
@@ -65,6 +67,21 @@ import { NDT_TEXTBOOKS } from '../data/ndeTextbooksData';
 import { EdbLibraryView } from './academy/EdbLibraryView';
 import { PautInspectorController } from './academy/PautInspectorController';
 import { ComprehensiveWeldUtSimulator } from './academy/virtuallab/ComprehensiveWeldUtSimulator';
+import { DacCalibrationBuilder } from './academy/virtuallab/DacCalibrationBuilder';
+import { WorkshopTrainingResultsPanel } from './academy/virtuallab/WorkshopTrainingResultsPanel';
+import {
+  DefectToleranceModal,
+  DefectToleranceTooltip,
+  DefectToleranceTriggerBar,
+  mapEducationalDefectToCatalogId,
+} from './academy/virtuallab/DefectToleranceAlertSystem';
+import type { InspectionCodeId } from '../data/utWeldDefectsCatalog';
+import { SimulationHistoryView } from './academy/SimulationHistoryView';
+import { SimulationLevelUpToast } from './academy/SimulationLevelUpToast';
+import {
+  recordSimulationAttempt,
+  useSimulationHistory,
+} from '../utils/simulationHistoryStore';
 
 export type SubTab = AcademyTab;
 
@@ -149,8 +166,16 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
     window.history.replaceState(null, '', `#${activeSubTab}`);
   }, [activeSubTab]);
 
+  // Persistent local Simulation History counter
+  const { stats: simulationHistoryStats } = useSimulationHistory();
+
   // Defect Simulator State
   const [selectedDefect, setSelectedDefect] = useState<EducationalDefect>(EDUCATIONAL_DEFECTS[0]);
+  const [defectSimCode, setDefectSimCode] = useState<InspectionCodeId>('asme_viii');
+  const [isDefectToleranceModalOpen, setIsDefectToleranceModalOpen] = useState<boolean>(false);
+  const [autoDefectAlert, setAutoDefectAlert] = useState<boolean>(true);
+  const [defectTraineeVerdict, setDefectTraineeVerdict] = useState<'ACCEPT' | 'REJECT'>('REJECT');
+  const [defectLogToast, setDefectLogToast] = useState<string | null>(null);
 
   // PWHT Simulator State
   const [steelGrade, setSteelGrade] = useState<'P1' | 'P4_P5' | 'P91'>('P1');
@@ -426,20 +451,49 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               <span className="truncate">{isAr ? 'معامل الورش الحية' : 'Interactive Labs (6)'}</span>
             </button>
 
-            {/* Hub 4: Thermal & Defect Simulators */}
+            {/* Hub 4: Thermal & Defect Simulators + Simulation History */}
             <button
               onClick={() => {
-                if (activeSubTab !== 'defects' && activeSubTab !== 'pwht_curve' && activeSubTab !== 'paut_controller' && activeSubTab !== 'weld_simulator') {
+                if (
+                  ![
+                    'defects',
+                    'pwht_curve',
+                    'paut_controller',
+                    'weld_simulator',
+                    'dac_builder',
+                    'simulation_history',
+                  ].includes(activeSubTab)
+                ) {
                   setActiveSubTab('weld_simulator');
                 }
               }}
               className={`flex items-center justify-center gap-2 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                activeSubTab === 'defects' || activeSubTab === 'pwht_curve' || activeSubTab === 'paut_controller' || activeSubTab === 'weld_simulator'
+                [
+                  'defects',
+                  'pwht_curve',
+                  'paut_controller',
+                  'weld_simulator',
+                  'dac_builder',
+                  'simulation_history',
+                ].includes(activeSubTab)
                   ? 'bg-amber-500 text-slate-950 font-black shadow-lg shadow-amber-500/25 scale-[1.01]'
                   : 'text-slate-300 hover:text-white hover:bg-[#161a3f]'
               }`}
             >
-              <Activity className={`w-4 h-4 ${activeSubTab === 'defects' || activeSubTab === 'pwht_curve' || activeSubTab === 'paut_controller' || activeSubTab === 'weld_simulator' ? 'text-slate-950' : 'text-amber-400'}`} />
+              <Activity
+                className={`w-4 h-4 ${
+                  [
+                    'defects',
+                    'pwht_curve',
+                    'paut_controller',
+                    'weld_simulator',
+                    'dac_builder',
+                    'simulation_history',
+                  ].includes(activeSubTab)
+                    ? 'text-slate-950'
+                    : 'text-amber-400'
+                }`}
+              />
               <span className="truncate">{isAr ? 'المحاكيات وأجهزة الفحص' : 'Simulators & Devices'}</span>
             </button>
 
@@ -578,10 +632,44 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             </div>
           )}
 
-          {/* Child Sub-Segment Pills for Hub 4: Simulators & Devices */}
-          {(activeSubTab === 'defects' || activeSubTab === 'pwht_curve' || activeSubTab === 'paut_controller' || activeSubTab === 'weld_simulator') && (
+          {/* Direct Quick Sub-Tab Access to Simulation History when outside Simulators Hub */}
+          {![
+            'defects',
+            'pwht_curve',
+            'paut_controller',
+            'weld_simulator',
+            'dac_builder',
+            'simulation_history',
+          ].includes(activeSubTab) && (
+            <div className="flex items-center justify-center">
+              <button
+                type="button"
+                onClick={() => setActiveSubTab('simulation_history')}
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#10132b] text-cyan-300 hover:text-white border border-cyan-500/30 transition cursor-pointer tabular-nums"
+              >
+                <History className="w-3.5 h-3.5 text-cyan-400" />
+                <span>{isAr ? 'سجل المحاكاة' : 'Simulation History'}</span>
+                {simulationHistoryStats.totalAttempts > 0 && (
+                  <span className="font-mono text-[11px] text-amber-300">
+                    ({simulationHistoryStats.totalAttempts} · {simulationHistoryStats.totalXp} XP)
+                  </span>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Child Sub-Segment Pills for Hub 4: Simulators, Devices & Simulation History */}
+          {[
+            'defects',
+            'pwht_curve',
+            'paut_controller',
+            'weld_simulator',
+            'dac_builder',
+            'simulation_history',
+          ].includes(activeSubTab) && (
             <div className="flex flex-wrap items-center justify-center gap-2 animate-fadeIn">
               <button
+                type="button"
                 onClick={() => setActiveSubTab('weld_simulator')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   activeSubTab === 'weld_simulator'
@@ -593,6 +681,19 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
                 <span>{isAr ? 'محاكي فحص اللحام وتتبع الأشعة والكود' : 'Weld UT Ray Tracing & Codes'}</span>
               </button>
               <button
+                type="button"
+                onClick={() => setActiveSubTab('dac_builder')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  activeSubTab === 'dac_builder'
+                    ? 'bg-emerald-500 text-slate-950 font-black shadow-md'
+                    : 'bg-[#10132b] text-emerald-400 hover:text-emerald-200 border border-emerald-500/30'
+                }`}
+              >
+                <TrendingDown className="w-3.5 h-3.5" />
+                <span>{isAr ? 'مختبر منحنى المعايرة DAC' : 'ASME DAC Curve Builder'}</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => setActiveSubTab('paut_controller')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   activeSubTab === 'paut_controller'
@@ -604,6 +705,7 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
                 <span>{isAr ? 'جهاز تحكم PAUT الميداني (Inspector Controller)' : 'PAUT Inspector Controller'}</span>
               </button>
               <button
+                type="button"
                 onClick={() => setActiveSubTab('defects')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   activeSubTab === 'defects'
@@ -615,6 +717,7 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
                 <span>{isAr ? 'محاكي عيوب اللحام (Defect Simulator)' : 'Weld Defect Simulator'}</span>
               </button>
               <button
+                type="button"
                 onClick={() => setActiveSubTab('pwht_curve')}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                   activeSubTab === 'pwht_curve'
@@ -624,6 +727,27 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               >
                 <Flame className="w-3.5 h-3.5 text-orange-400" />
                 <span>{isAr ? 'محاكي منحنيات PWHT الحرارية' : 'PWHT Thermal Curve'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveSubTab('simulation_history')}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer tabular-nums ${
+                  activeSubTab === 'simulation_history'
+                    ? 'bg-cyan-500 text-slate-950 font-black shadow-md'
+                    : 'bg-[#10132b] text-cyan-300 hover:text-white border border-cyan-500/35'
+                }`}
+              >
+                <History className="w-3.5 h-3.5" />
+                <span>{isAr ? 'سجل المحاكاة' : 'Simulation History'}</span>
+                {simulationHistoryStats.totalAttempts > 0 && (
+                  <span
+                    className={`font-mono text-[11px] ${
+                      activeSubTab === 'simulation_history' ? 'text-slate-950' : 'text-amber-300'
+                    }`}
+                  >
+                    ({simulationHistoryStats.totalAttempts} · {simulationHistoryStats.totalXp} XP)
+                  </span>
+                )}
               </button>
             </div>
           )}
@@ -891,15 +1015,35 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
           <PautInspectorController language={language} />
         )}
 
-        {/* Sub-Tab 0D: Comprehensive Weld UT Ray Tracing & Defect Evaluation */}
+        {/* Sub-Tab 0D: Comprehensive Weld UT Ray Tracing & Defect Evaluation + Training Scorecard */}
         {activeSubTab === 'weld_simulator' && (
-          <ComprehensiveWeldUtSimulator language={language} />
+          <div className="space-y-8">
+            <ComprehensiveWeldUtSimulator language={language} />
+            <WorkshopTrainingResultsPanel language={language} />
+          </div>
+        )}
+
+        {/* Sub-Tab 0E: Step-by-Step ASME DAC Calibration Builder */}
+        {activeSubTab === 'dac_builder' && (
+          <DacCalibrationBuilder language={language} />
+        )}
+
+        {/* Sub-Tab 0F: Persistent Local Simulation History */}
+        {activeSubTab === 'simulation_history' && (
+          <SimulationHistoryView
+            language={language}
+            suppressGlobalToast
+            onOpenSubTab={(tab) => {
+              setActiveSubTab(tab);
+              window.scrollTo({ top: 340, behavior: 'smooth' });
+            }}
+          />
         )}
 
         {/* Sub-Tab 1: Defect Diagnostic Simulator */}
         {activeSubTab === 'defects' && (
-          <div className="bg-[#10132b] p-6 sm:p-8 rounded-2xl border-2 border-amber-500/40 shadow-2xl">
-            <div className="max-w-2xl mb-6">
+          <div className="bg-[#10132b] p-6 sm:p-8 rounded-2xl border-2 border-amber-500/40 shadow-2xl space-y-5">
+            <div className="max-w-2xl">
               <h3 className="text-xl sm:text-2xl font-black text-white">
                 {isAr ? 'محاكي تشخيص عيوب اللحام وقواعد القبول' : 'Weld Discontinuity & Defect Simulator'}
               </h3>
@@ -910,39 +1054,64 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
               </p>
             </div>
 
+            <DefectToleranceTriggerBar
+              defectId={mapEducationalDefectToCatalogId(selectedDefect.id)}
+              activeCode={defectSimCode}
+              thicknessMm={25}
+              language={language}
+              autoAlertOnSelect={autoDefectAlert}
+              onToggleAutoAlert={setAutoDefectAlert}
+              onOpenModal={() => setIsDefectToleranceModalOpen(true)}
+            />
+
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              {/* Defect Selector Pills */}
+              {/* Defect Selector Buttons with Hover Tolerance Tooltip */}
               <div className="lg:col-span-4 space-y-2.5">
                 {EDUCATIONAL_DEFECTS.map((defect) => {
                   const isSelected = selectedDefect.id === defect.id;
+                  const mappedId = mapEducationalDefectToCatalogId(defect.id);
                   return (
-                    <button
+                    <DefectToleranceTooltip
                       key={defect.id}
-                      onClick={() => setSelectedDefect(defect)}
-                      className={`w-full text-start p-3.5 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
-                        isSelected
-                          ? 'bg-[#1d224e] border-amber-400 text-white shadow-md'
-                          : 'bg-[#0b0c1c] border-[#202652] text-slate-300 hover:bg-[#141738]'
-                      }`}
+                      defectId={mappedId}
+                      activeCode={defectSimCode}
+                      thicknessMm={25}
+                      language={language}
                     >
-                      <div>
-                        <div className="font-bold text-xs sm:text-sm">
-                          {isAr ? defect.name.ar : defect.name.en}
-                        </div>
-                        <div className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
-                          {isAr ? defect.nature.ar : defect.nature.en}
-                        </div>
-                      </div>
-                      <span
-                        className={`text-[10px] font-mono-code px-2 py-0.5 rounded font-bold ${
-                          defect.severity === 'Critical'
-                            ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-                            : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedDefect(defect);
+                          setDefectLogToast(null);
+                          if (autoDefectAlert) {
+                            setIsDefectToleranceModalOpen(true);
+                          }
+                        }}
+                        className={`w-full text-start p-3.5 rounded-xl border transition-all flex items-center justify-between cursor-pointer ${
+                          isSelected
+                            ? 'bg-[#1d224e] border-amber-400 text-white shadow-md'
+                            : 'bg-[#0b0c1c] border-[#202652] text-slate-300 hover:bg-[#141738]'
                         }`}
                       >
-                        {defect.severity}
-                      </span>
-                    </button>
+                        <div>
+                          <div className="font-bold text-xs sm:text-sm">
+                            {isAr ? defect.name.ar : defect.name.en}
+                          </div>
+                          <div className="text-[11px] text-slate-400 mt-0.5 line-clamp-1">
+                            {isAr ? defect.nature.ar : defect.nature.en}
+                          </div>
+                        </div>
+                        <span
+                          className={`text-[10px] font-mono-code px-2 py-0.5 rounded font-bold ${
+                            defect.severity === 'Critical'
+                              ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                              : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                          }`}
+                        >
+                          {defect.severity}
+                        </span>
+                      </button>
+                    </DefectToleranceTooltip>
                   );
                 })}
               </div>
@@ -1013,8 +1182,104 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
                     {selectedDefect.acceptanceCriteriaCode}
                   </p>
                 </div>
+
+                {/* Interactive Simulation Disposition & Log to Simulation History */}
+                <div className="rounded-xl border border-[#232958] bg-[#10132b] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
+                    <span className="text-slate-300 font-bold">
+                      {isAr ? 'تقييم القبول الكودي للمحاولة:' : 'Evaluate Defect Disposition:'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setDefectTraineeVerdict('ACCEPT')}
+                      className={`px-3 py-1 rounded-lg border font-bold cursor-pointer ${
+                        defectTraineeVerdict === 'ACCEPT'
+                          ? 'bg-emerald-600 text-white border-emerald-400'
+                          : 'bg-slate-950 text-slate-400 border-slate-800'
+                      }`}
+                    >
+                      ACCEPT
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDefectTraineeVerdict('REJECT')}
+                      className={`px-3 py-1 rounded-lg border font-bold cursor-pointer ${
+                        defectTraineeVerdict === 'REJECT'
+                          ? 'bg-rose-600 text-white border-rose-400'
+                          : 'bg-slate-950 text-slate-400 border-slate-800'
+                      }`}
+                    >
+                      REJECT
+                    </button>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const expectedVerdict: 'ACCEPT' | 'REJECT' =
+                          selectedDefect.severity === 'Critical' ? 'REJECT' : 'ACCEPT';
+                        const isPass = defectTraineeVerdict === expectedVerdict;
+                        const rec = recordSimulationAttempt({
+                          simulatorId: 'defects_simulator',
+                          targetSubTab: 'defects',
+                          simulatorTitle: {
+                            ar: 'محاكي تشخيص عيوب اللحام وقواعد القبول',
+                            en: 'Weld Discontinuity & Defect Simulator',
+                          },
+                          ndtMethod: 'MULTI',
+                          defectTypes: [
+                            {
+                              id: selectedDefect.id,
+                              ar: selectedDefect.name.ar,
+                              en: selectedDefect.name.en,
+                            },
+                          ],
+                          status: isPass ? 'PASS' : 'FAIL',
+                          codeVerdict: expectedVerdict,
+                          traineeVerdict: defectTraineeVerdict,
+                          codeStandard: selectedDefect.acceptanceCriteriaCode,
+                          scorePct: isPass ? 100 : 40,
+                        });
+                        setDefectLogToast(
+                          isAr
+                            ? `تم التسجيل (${rec.status} · +${rec.xpEarned} XP)`
+                            : `Recorded (${rec.status} · +${rec.xpEarned} XP)`
+                        );
+                      }}
+                      className="px-3.5 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold transition cursor-pointer inline-flex items-center gap-1.5"
+                    >
+                      <ClipboardCheck className="w-3.5 h-3.5" />
+                      <span>
+                        {isAr ? 'تسجيل المحاولة في سجل المحاكاة' : 'Record Simulation Attempt'}
+                      </span>
+                    </button>
+
+                    {defectLogToast && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveSubTab('simulation_history')}
+                        className="text-xs font-mono font-bold text-emerald-300 hover:text-emerald-200 underline cursor-pointer"
+                      >
+                        {defectLogToast} · {isAr ? 'عرض السجل' : 'View History'}
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
+
+            <DefectToleranceModal
+              isOpen={isDefectToleranceModalOpen}
+              onClose={() => setIsDefectToleranceModalOpen(false)}
+              defectId={mapEducationalDefectToCatalogId(selectedDefect.id)}
+              activeCode={defectSimCode}
+              onSelectCode={setDefectSimCode}
+              thicknessMm={25}
+              language={language}
+              autoAlertOnSelect={autoDefectAlert}
+              onToggleAutoAlert={setAutoDefectAlert}
+            />
           </div>
         )}
 
@@ -1532,6 +1797,18 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
           <IndustrialVideoGen language={language} />
         )}
       </div>
+
+      <SimulationLevelUpToast
+        language={language}
+        onOpenHistory={
+          activeSubTab !== 'simulation_history'
+            ? () => {
+                setActiveSubTab('simulation_history');
+                window.scrollTo({ top: 320, behavior: 'smooth' });
+              }
+            : undefined
+        }
+      />
     </section>
   );
 };

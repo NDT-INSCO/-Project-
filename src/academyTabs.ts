@@ -10,7 +10,8 @@ export const ACADEMY_TABS = [
   'knowledge', 'encyclopedia', 'curriculum', 'courses', 'paths', 'edb',
   'flashcards', 'workshops', 'defects', 'pwht_curve', 'methods', 'standards',
   'quiz', 'ask_ai', 'video_gen', 'certificates', 'practical', 'leaderboard',
-  'completion_map', 'roadmap', 'certification_center', 'paut_controller', 'weld_simulator',
+  'completion_map', 'roadmap', 'certification_center', 'paut_controller',
+  'weld_simulator', 'dac_builder', 'simulation_history',
 ] as const;
 
 export type AcademyTab = (typeof ACADEMY_TABS)[number];

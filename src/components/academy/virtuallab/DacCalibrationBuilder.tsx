@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Language } from '../../../types';
+import { recordSimulationAttempt } from '../../../utils/simulationHistoryStore';
 import {
   Activity,
   AlertTriangle,
   Award,
   CheckCircle2,
+  ClipboardCheck,
   Crosshair,
   Info,
   Layers,
@@ -138,6 +140,7 @@ export const DacCalibrationBuilder: React.FC<DacCalibrationBuilderProps> = ({
 
   // --- Probe Position & Target Mode ---
   const [targetMode, setTargetMode] = useState<TargetMode>('calibration_block');
+  const [dacAttemptSavedMsg, setDacAttemptSavedMsg] = useState<string | null>(null);
   const [selectedHoleId, setSelectedHoleId] = useState<'sdh_1_4' | 'sdh_1_2' | 'sdh_3_4' | 'sdh_5_4'>('sdh_1_4');
   const [probeXmm, setProbeXmm] = useState<number>(16.5);
   const [isDraggingBlock, setIsDraggingBlock] = useState<boolean>(false);
@@ -1839,6 +1842,69 @@ export const DacCalibrationBuilder: React.FC<DacCalibrationBuilderProps> = ({
               <p className="text-xs leading-relaxed">
                 {isAr ? flawEvaluation.reasonAr : flawEvaluation.reasonEn}
               </p>
+
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const isRejected = flawEvaluation.disposition === 'REJECT';
+                    const dacAccuracyPct =
+                      recordedPoints.length >= 4
+                        ? 100
+                        : recordedPoints.length >= 3
+                        ? 95
+                        : 76;
+                    const rec = recordSimulationAttempt({
+                      simulatorId: 'dac_builder',
+                      targetSubTab: 'dac_builder',
+                      simulatorTitle: {
+                        ar: 'مختبر منحنى المعايرة DAC (ASME Sec V / App. 12)',
+                        en: 'ASME DAC Curve Builder & Flaw Evaluator',
+                      },
+                      ndtMethod: 'DAC',
+                      defectTypes: [
+                        flawCategory === 'Planar'
+                          ? {
+                              id: 'planar_crack_lof',
+                              ar: 'عيب مستوٍ (شرخ / نقص انصهار)',
+                              en: 'Planar Flaw (Crack / LOF)',
+                            }
+                          : {
+                              id: 'volumetric_slag_porosity',
+                              ar: 'عيب حجمي (خبث / مسامية)',
+                              en: 'Volumetric Flaw (Slag / Porosity)',
+                            },
+                      ],
+                      status: isRejected ? 'FAIL' : 'PASS',
+                      codeVerdict: isRejected ? 'REJECT' : 'ACCEPT',
+                      codeStandard: flawEvaluation.clause,
+                      scorePct: dacAccuracyPct,
+                      measuredDepthMm: Number((flawDepthRatio * specimenThicknessMm).toFixed(1)),
+                      measuredLengthMm: flawLengthMm,
+                      notes: {
+                        ar: `${flawEvaluation.pctOfDac}% DAC · سمك العينة ${specimenThicknessMm} مم`,
+                        en: `${flawEvaluation.pctOfDac}% DAC · Specimen t=${specimenThicknessMm} mm`,
+                      },
+                    });
+                    setDacAttemptSavedMsg(
+                      isAr
+                        ? `تم الحفظ في سجل المحاكاة (${rec.status} · +${rec.xpEarned} XP)`
+                        : `Saved to Simulation History (${rec.status} · +${rec.xpEarned} XP)`
+                    );
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-slate-950/80 hover:bg-slate-900 border border-slate-700 text-xs font-mono font-bold text-cyan-300 transition cursor-pointer inline-flex items-center gap-1.5"
+                >
+                  <ClipboardCheck className="w-3.5 h-3.5" />
+                  <span>
+                    {isAr ? 'تسجيل محاولة تقييم DAC في السجل' : 'Record DAC Simulation Attempt'}
+                  </span>
+                </button>
+                {dacAttemptSavedMsg && (
+                  <span className="text-[11px] font-mono text-emerald-300 font-semibold">
+                    {dacAttemptSavedMsg}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import { ExtendedWeldFlawId } from '../data/utWeldDefectsCatalog';
+import { recordSimulationAttempt } from './simulationHistoryStore';
 
 export interface WorkshopTrainingAttempt {
   id: string;
@@ -181,6 +182,48 @@ export function gradeAndRecordWorkshopAttempt(input: {
   } catch {
     // ignore storage errors in restricted environments
   }
+
+  recordSimulationAttempt({
+    timestamp: attempt.timestampIso,
+    simulatorId: input.isBlindChallenge
+      ? 'blind_drill'
+      : input.instrument === 'PAUT'
+      ? 'paut_console'
+      : input.instrument === 'DAC'
+      ? 'dac_builder'
+      : 'weld_simulator',
+    targetSubTab: input.instrument === 'DAC' ? 'dac_builder' : 'weld_simulator',
+    simulatorTitle: input.isBlindChallenge
+      ? {
+          ar: `اختبار العينة العمياء (${input.deviceModel})`,
+          en: `Blind Practical Specimen (${input.deviceModel})`,
+        }
+      : {
+          ar: `محاكي الفحص العملي — ${input.deviceModel}`,
+          en: `NDT Simulation — ${input.deviceModel}`,
+        },
+    ndtMethod: input.instrument,
+    defectTypes: [
+      {
+        id: input.defectId,
+        ar: input.defectNameAr,
+        en: input.defectNameEn,
+      },
+    ],
+    status: verdictCorrect && scorePct >= 70 ? 'PASS' : 'FAIL',
+    codeVerdict: input.actualCodeVerdict,
+    traineeVerdict: input.traineeVerdict,
+    codeStandard: input.codeStandard,
+    scorePct,
+    actualDepthMm: attempt.actualDepthMm,
+    measuredDepthMm: attempt.measuredDepthMm,
+    actualLengthMm: attempt.actualLengthMm,
+    measuredLengthMm: attempt.measuredLengthMm,
+    notes: {
+      ar: feedbackAr,
+      en: feedbackEn,
+    },
+  });
 
   return attempt;
 }

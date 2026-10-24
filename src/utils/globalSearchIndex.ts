@@ -258,6 +258,29 @@ function buildGlobalSearchIndex(): GlobalSearchItem[] {
       destination: { type: 'academy', subTab: 'workshops' },
     },
     {
+      id: 'academy-simulation-history',
+      category: 'academy',
+      code: 'SIM LOG',
+      title: {
+        ar: 'سجل المحاكاة وتتبع محاولات الفحص السابقة (Simulation History)',
+        en: 'Simulation History & NDT Attempt Log',
+      },
+      subtitle: {
+        ar: 'سجل محلي دائم لمحاولات UT و PAUT و DAC والعيوب المختارة وحالة النجاح والرسوب والتوقيت',
+        en: 'Persistent local log of NDT simulation attempts, defect types, pass/fail status & timestamps',
+      },
+      keywords: [
+        'simulation history',
+        'attempt log',
+        'pass fail',
+        'history',
+        'سجل المحاكاه',
+        'محاولات الفحص',
+        'نتائج المحاكاه',
+      ],
+      destination: { type: 'academy', subTab: 'simulation_history' },
+    },
+    {
       id: 'academy-paut-controller',
       category: 'academy',
       code: 'PAUT CTRL',
