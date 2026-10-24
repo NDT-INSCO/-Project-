@@ -26,14 +26,48 @@ Object.assign(globalThis, {
   document: dom.window.document,
   localStorage: dom.window.localStorage,
   HTMLElement: dom.window.HTMLElement,
+  HTMLCanvasElement: dom.window.HTMLCanvasElement,
   CustomEvent: dom.window.CustomEvent,
   Event: dom.window.Event,
   getComputedStyle: dom.window.getComputedStyle.bind(dom.window),
+  requestAnimationFrame: (cb: FrameRequestCallback) => setTimeout(() => cb(Date.now()), 16).unref(),
+  cancelAnimationFrame: (id: ReturnType<typeof setTimeout>) => clearTimeout(id),
 });
 
-// Mock scrollTo and scrollIntoView
+// Mock scrollTo, scrollIntoView, and HTML5 canvas for jsdom
 dom.window.scrollTo = () => {};
 dom.window.HTMLElement.prototype.scrollIntoView = () => {};
+// @ts-expect-error jsdom canvas mock
+dom.window.HTMLCanvasElement.prototype.getContext = () => ({
+  fillRect: () => {},
+  strokeRect: () => {},
+  clearRect: () => {},
+  getImageData: () => ({ data: new Array(4) }),
+  putImageData: () => {},
+  createImageData: () => ([]),
+  setTransform: () => {},
+  translate: () => {},
+  rotate: () => {},
+  drawImage: () => {},
+  save: () => {},
+  fillText: () => {},
+  restore: () => {},
+  beginPath: () => {},
+  moveTo: () => {},
+  lineTo: () => {},
+  closePath: () => {},
+  stroke: () => {},
+  fill: () => {},
+  arc: () => {},
+  ellipse: () => {},
+  quadraticCurveTo: () => {},
+  bezierCurveTo: () => {},
+  createLinearGradient: () => ({ addColorStop: () => {} }),
+  createRadialGradient: () => ({ addColorStop: () => {} }),
+  setLineDash: () => {},
+});
+dom.window.HTMLCanvasElement.prototype.toDataURL = () =>
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
 
 const { render, fireEvent, cleanup } = await import('@testing-library/react');
 
@@ -274,19 +308,19 @@ test('RadiographicFilmViewer displays digital light box with flaw defect measure
 test('UtFlawDetectorDevice allows gain adjustment, range switching, and specimen selection', () => {
   const ui = render(<UtFlawDetectorDevice language="ar" />);
 
-  // Should display Krautkramer USM 35X header
-  assert.ok(ui.getAllByText(/Krautkramer USM 35X/i).length > 0);
+  // Should display Krautkrämer USM 35X header
+  assert.ok(ui.getAllByText(/Krautkrämer USM 35X/i).length > 0);
   assert.ok(ui.getAllByText(/42.0 dB/i).length > 0);
 
   // Increase gain by +6 dB
-  const plusSixBtn = ui.getByRole('button', { name: /\+6 dB/i });
+  const plusSixBtn = ui.getByRole('button', { name: '+6' });
   fireEvent.click(plusSixBtn);
 
   // Gain should now be 48.0 dB
   assert.ok(ui.getAllByText(/48.0 dB/i).length > 0);
 
-  // Switch specimen to Butt Weld
-  const buttWeldBtn = ui.getByRole('button', { name: /فحص وصلة لحام/i });
+  // Switch specimen to Flat Butt Weld
+  const buttWeldBtn = ui.getByRole('button', { name: /عينة لحام فلات/i });
   fireEvent.click(buttWeldBtn);
 
   // Should show probe angle 60°
@@ -328,13 +362,59 @@ test('NdtVirtualLabWorkbench integrates training missions, theory formulas, and 
   const ui = render(<NdtVirtualLabWorkbench language="ar" />);
 
   // Heading and missions
-  assert.ok(ui.getAllByText(/المختبر الافتراضي لأجهزة الموجات فوق الصوتية/i).length > 0);
-  assert.ok(ui.getAllByText(/5920 m\/s/i).length > 0);
+  assert.ok(ui.getAllByText(/ورشة أجهزة الموجات فوق الصوتية والمصفوفات الطورية/i).length > 0);
+  assert.ok(ui.getAllByText(/3240 m\/s/i).length > 0);
 
   // Theory formulas presence
   assert.ok(ui.getAllByText(/قانون سنيل للانكسار/i).length > 0);
 });
 
+test('GlobalHeaderSearch filters services, educational modules, and company info and navigates directly', async () => {
+  const { filterGlobalSearchItems } = await import('../src/utils/globalSearchIndex');
 
+  // Verify pure text filter across all 3 categories in both Arabic & English
+  const serviceMatches = filterGlobalSearchItems('PWHT 65 kW', 'services');
+  assert.ok(serviceMatches.length > 0);
+  assert.ok(serviceMatches.every((m) => m.category === 'services'));
 
+  const moduleMatches = filterGlobalSearchItems('منحنى المعايرة DAC', 'academy');
+  assert.ok(moduleMatches.some((m) => m.id === 'academy-dac-builder'));
 
+  const companyMatches = filterGlobalSearchItems('ISO 9001', 'company');
+  assert.ok(companyMatches.some((m) => m.id === 'company-cert-iso_9001'));
+
+  // Render full App and interact with the header global search bar
+  const ui = render(<App />);
+
+  const headerEl = ui.container.querySelector('header');
+  assert.ok(headerEl, 'Header should exist');
+
+  const searchInput = ui.getByRole('searchbox', {
+    name: /بحث شامل في الخدمات والوحدات التعليمية ومعلومات الشركة/i,
+  });
+  assert.ok(headerEl.contains(searchInput), 'Global search input must be inside the header');
+
+  // 1. Filter for an Educational Module ("DAC") and select it -> navigates to Academy DAC Builder
+  fireEvent.focus(searchInput);
+  fireEvent.change(searchInput, { target: { value: 'ASME DAC' } });
+
+  const dacOption = ui.getByRole('button', {
+    name: /منشئ منحنى المعايرة DAC التفاعلي/i,
+  });
+  fireEvent.click(dacOption);
+
+  // App switched to Educational Academy view
+  assert.ok(ui.getAllByText(/أكاديمية إنسكو الهندسية للفحص غير الإتلافي/i).length > 0);
+
+  // 2. From inside Academy view, search for Company Info ("ISO 9001") and jump back to Company Portal
+  fireEvent.focus(searchInput);
+  fireEvent.change(searchInput, { target: { value: 'ISO 9001:2015' } });
+
+  const isoOption = ui.getByRole('button', {
+    name: /ISO 9001:2015 — نظام إدارة الجودة/i,
+  });
+  fireEvent.click(isoOption);
+
+  // Restored to Company Portal view
+  assert.ok(ui.getAllByText(/بروشور PDF/i).length > 0);
+});
