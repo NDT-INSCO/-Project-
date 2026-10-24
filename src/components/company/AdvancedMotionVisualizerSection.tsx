@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
 import { Language } from '../../types';
-import { InteractiveInspectionHologram } from './InteractiveInspectionHologram';
+const InteractiveInspectionHologram = React.lazy(() =>
+  import('./InteractiveInspectionHologram').then(module => ({ default: module.InteractiveInspectionHologram }))
+);
 import { 
   Sparkles, 
   Activity, 
@@ -82,7 +84,9 @@ export const AdvancedMotionVisualizerSection: React.FC<AdvancedMotionVisualizerS
 
         {/* 1. Interactive 3D Holographic Pipeline Weld Scanner */}
         <div className="mb-14">
-          <InteractiveInspectionHologram language={language} />
+          <Suspense fallback={<div className="h-[420px] animate-pulse rounded-2xl border border-slate-800 bg-slate-900/60" />}>
+            <InteractiveInspectionHologram language={language} />
+          </Suspense>
         </div>
 
         {/* 2. Photorealistic Field Engineering Gallery */}

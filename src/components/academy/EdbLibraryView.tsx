@@ -32,6 +32,8 @@ import { EdbFlipbook } from './EdbFlipbook';
 interface EdbLibraryViewProps {
   language: Language;
   initialBookId?: string;
+  /** 1-based page inside `initialBookId`. */
+  initialPage?: number;
   onOpenCourse?: (courseId: string) => void;
   onOpenLab?: (labId: string) => void;
 }
@@ -84,7 +86,7 @@ const BookCover: React.FC<{ entry: EdbIndexEntry; language: Language }> = ({ ent
   </div>
 );
 
-export const EdbLibraryView: React.FC<EdbLibraryViewProps> = ({ language, initialBookId, onOpenCourse, onOpenLab }) => {
+export const EdbLibraryView: React.FC<EdbLibraryViewProps> = ({ language, initialBookId, initialPage, onOpenCourse, onOpenLab }) => {
   const isAr = language === 'ar';
   const [index, setIndex] = useState<EdbIndex | null>(null);
   const [source, setSource] = useState<'files' | 'runtime' | 'loading'>('loading');
@@ -147,9 +149,10 @@ export const EdbLibraryView: React.FC<EdbLibraryViewProps> = ({ language, initia
     if (!initialBookId || !index) return;
     const entry = index.books.find(item => item.id === initialBookId);
     if (entry) void openBook(entry);
-    // Opening is intentionally keyed to the requested book and the loaded index.
+    // Keyed to the requested book, page and the loaded index: a second search
+    // for a different page of the same book must reopen it, not stay put.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialBookId, index]);
+  }, [initialBookId, initialPage, index]);
 
   const openImported = async (file: File) => {
     setImportError('');
@@ -187,6 +190,7 @@ export const EdbLibraryView: React.FC<EdbLibraryViewProps> = ({ language, initia
         <EdbFlipbook
           language={language}
           book={book}
+          initialPageNumber={initialPage}
           onClose={() => { setBook(null); setOpenEntry(null); setProgress(readEdbProgress()); }}
           onOpenLab={onOpenLab}
         />

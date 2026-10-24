@@ -6,6 +6,7 @@ import {
   BrainCircuit,
   CheckCircle2,
   ClipboardCheck,
+  CircleStop,
   Compass,
   FileText,
   Film,
@@ -27,13 +28,24 @@ import {
   XCircle,
 } from 'lucide-react';
 import { Language, EducationalDefect, QuizQuestion } from '../types';
+import { ACADEMY_TABS, AcademyTab, readAcademyTab } from '../academyTabs';
 import { NDT_METHODS, EDUCATIONAL_DEFECTS, STANDARDS_LIBRARY, SAMPLE_QUIZZES } from '../data/inscoData';
 import { IndustrialVideoGen } from './IndustrialVideoGen';
 import { DisciplineCurriculumView } from './academy/DisciplineCurriculumView';
 import { InteractiveWorkshops } from './academy/InteractiveWorkshops';
 import { CurriculumQuizEngine } from './academy/CurriculumQuizEngine';
 import { CurriculumLevelProgressTracker } from './academy/CurriculumLevelProgressTracker';
-import { SemanticSearchBar } from './academy/SemanticSearchBar';
+import { SemanticSearchBar, SearchTarget } from './academy/SemanticSearchBar';
+import { fetchTutorStatus, streamTutor } from '../ai/client';
+import { getCorpusStats } from '../ai/corpus';
+import {
+  failureMessage,
+  TUTOR_LIMITS,
+  TutorCitation,
+  TutorFailure,
+  TutorLanguage,
+  TutorStatus,
+} from '../ai/contract';
 import { CurriculumCertificatesView } from './academy/CurriculumCertificatesView';
 import { PracticalAssessmentView } from './academy/PracticalAssessmentView';
 import { LearningPathsView } from './academy/LearningPathsView';
@@ -54,18 +66,10 @@ import { EdbLibraryView } from './academy/EdbLibraryView';
 import { PautInspectorController } from './academy/PautInspectorController';
 import { ComprehensiveWeldUtSimulator } from './academy/virtuallab/ComprehensiveWeldUtSimulator';
 
-export type SubTab =
-  | 'knowledge' | 'encyclopedia' | 'curriculum' | 'courses' | 'paths' | 'edb'
-  | 'flashcards' | 'workshops' | 'defects' | 'pwht_curve' | 'methods' | 'standards'
-  | 'quiz' | 'ask_ai' | 'video_gen' | 'certificates' | 'practical' | 'leaderboard'
-  | 'completion_map' | 'roadmap' | 'certification_center' | 'paut_controller' | 'weld_simulator';
+export type SubTab = AcademyTab;
 
-export const SUB_TABS: SubTab[] = [
-  'knowledge', 'encyclopedia', 'curriculum', 'courses', 'paths', 'edb',
-  'flashcards', 'workshops', 'defects', 'pwht_curve', 'methods', 'standards',
-  'quiz', 'ask_ai', 'video_gen', 'certificates', 'practical', 'leaderboard',
-  'completion_map', 'roadmap', 'certification_center', 'paut_controller', 'weld_simulator',
-];
+/** Kept as a plain array so existing callers can keep iterating it. */
+export const SUB_TABS: SubTab[] = [...ACADEMY_TABS];
 
 interface EducationalAcademyProps {
   language: Language;
@@ -74,8 +78,10 @@ interface EducationalAcademyProps {
 
 export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language, initialSubTab }) => {
   const isAr = language === 'ar';
+  const corpusStats = React.useMemo(() => getCorpusStats(), []);
   const [activeSubTab, setActiveSubTab] = useState<SubTab>(
-    initialSubTab || 'encyclopedia'
+    // Order: explicit request → shared link → first tab.
+    initialSubTab ?? readAcademyTab(window.location.hash) ?? 'encyclopedia'
   );
 
   // Target Module/Discipline when navigating to Quiz Mode from Curriculum
@@ -95,6 +101,7 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
 
   const [courseTarget, setCourseTarget] = useState<string | undefined>(undefined);
   const [edbTarget, setEdbTarget] = useState<string | undefined>(undefined);
+  const [edbTargetPage, setEdbTargetPage] = useState<number | undefined>(undefined);
   const [textbookTarget, setTextbookTarget] = useState<{ bookId: string; pageNumber: number } | undefined>(undefined);
 
   const handleNavigateToCurriculumModule = (disciplineId: string, levelIdx: number, moduleId?: string) => {
@@ -114,34 +121,33 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
     window.scrollTo({ top: 350, behavior: 'smooth' });
   };
 
+  // A tab is shareable: `#courses`, `#practical`, `#edb`… The hash is the only
+  // router in the app, so a teacher can paste a link straight to a section.
+  // `initialSubTab` is the tab requested by the host page; it is an instruction,
+  // not a permanent override — otherwise every re-render would snap the reader
+  // back to the tab the app opened with.
+  const appliedRequest = React.useRef<SubTab | undefined>(initialSubTab);
   React.useEffect(() => {
-    if (initialSubTab) {
+    if (initialSubTab && initialSubTab !== appliedRequest.current) {
+      appliedRequest.current = initialSubTab;
       setActiveSubTab(initialSubTab);
     }
   }, [initialSubTab]);
 
-  // A tab is shareable: `#courses`, `#practical`, `#edb`… The hash is the only
-  // router in the app, so a teacher can paste a link straight to a section.
-  // `initialSubTab` (tests, embeds) always wins over the URL.
   React.useEffect(() => {
-    if (initialSubTab) return;
     const applyHash = () => {
-      const candidate = window.location.hash.replace(/^#/, '').trim();
-      if (candidate && SUB_TABS.includes(candidate as SubTab)) {
-        setActiveSubTab(candidate as SubTab);
-      }
+      const tab = readAcademyTab(window.location.hash);
+      if (tab) setActiveSubTab(tab);
     };
-    applyHash();
     window.addEventListener('hashchange', applyHash);
     return () => window.removeEventListener('hashchange', applyHash);
-  }, [initialSubTab]);
+  }, []);
 
   React.useEffect(() => {
-    if (initialSubTab) return;
     if (window.location.hash.replace(/^#/, '') === activeSubTab) return;
     // replaceState keeps the back button clean while still updating the URL.
     window.history.replaceState(null, '', `#${activeSubTab}`);
-  }, [activeSubTab, initialSubTab]);
+  }, [activeSubTab]);
 
   // Defect Simulator State
   const [selectedDefect, setSelectedDefect] = useState<EducationalDefect>(EDUCATIONAL_DEFECTS[0]);
@@ -158,10 +164,16 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
   const [score, setScore] = useState<number>(0);
   const [quizCompleted, setQuizCompleted] = useState<boolean>(false);
 
-  // AI Tutor State
+  // AI Tutor State. `aiStatus` decides whether the tab offers a form or an
+  // honest explanation: the site is published statically, so most deployments
+  // have no gateway at all.
   const [aiTopic, setAiTopic] = useState<string>('');
   const [aiResponse, setAiResponse] = useState<string>('');
   const [isAiLoading, setIsAiLoading] = useState<boolean>(false);
+  const [aiStatus, setAiStatus] = useState<TutorStatus | null>(null);
+  const [aiCitations, setAiCitations] = useState<TutorCitation[]>([]);
+  const [aiFailure, setAiFailure] = useState<TutorFailure | null>(null);
+  const aiAbort = React.useRef<AbortController | null>(null);
 
   // PWHT Calculations based on ASME B31.3
   const getPWHTParameters = () => {
@@ -231,42 +243,87 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
     setQuizCompleted(false);
   };
 
+  // Ask the gateway once, and only when the tutor tab is actually opened.
+  React.useEffect(() => {
+    if (activeSubTab !== 'ask_ai' || aiStatus) return;
+    let active = true;
+    void fetchTutorStatus().then(status => {
+      if (active) setAiStatus(status);
+    });
+    return () => { active = false; };
+  }, [activeSubTab, aiStatus]);
+
+  const openSearchTarget = (target: SearchTarget) => {
+    if (target.tab === 'edb' && target.bookId) {
+      setEdbTarget(`edb-${target.bookId}`);
+      setEdbTargetPage(target.pageNumber);
+      setActiveSubTab('edb');
+    } else if (target.courseId) {
+      setCourseTarget(target.courseId);
+      setActiveSubTab('courses');
+    }
+    window.scrollTo({ top: 320, behavior: 'smooth' });
+  };
+
+  const stopAiTutor = () => {
+    aiAbort.current?.abort();
+    aiAbort.current = null;
+    setIsAiLoading(false);
+  };
+
   const handleAskAiTutor = async (topicToSend?: string) => {
     const q = (topicToSend || aiTopic).trim();
     if (!q || isAiLoading) return;
 
+    setAiTopic(q);
     setIsAiLoading(true);
     setAiResponse('');
+    setAiCitations([]);
+    setAiFailure(null);
 
-    try {
-      const response = await fetch('/api/ai/educational-tutor', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          topic: q,
-          queryType: 'explain_method',
-          level: 'advanced',
-          language
-        })
-      });
+    const controller = new AbortController();
+    aiAbort.current = controller;
 
-      if (!response.ok) {
-        throw new Error('Educational tutor failed');
-      }
-
-      const data = await response.json();
-      setAiResponse(data.content || '');
-    } catch (err) {
-      console.error(err);
-      setAiResponse(
-        isAr
-          ? `في تقنيات الفحص غير الإتلافي والمعالجة الحرارية، يتم تطبيق مواصفات ASME Section V و Section IX و AWS D1.1 بدقة لضمان اكتشاف كافة العيوب الداخلية والسطحية مثل الشروخ ونقص التغلغل قبل دخول المعدة للخدمة. تشترط الأكواد تأهيل الكوادر الفاحصة لشهادة ASNT Level II كحد أدنى للتوقيع على تقارير القبول والرفض.`
-          : `In NDT and PWHT engineering, ASME Section V and AWS D1.1 enforce strict acceptance criteria for volumetric defects (porosity, slag, lack of fusion) and planar defects (cracks). ASNT Level II certified inspection personnel are required to sign off on compliance reports.`
-      );
-    } finally {
+    // If the status probe has not finished, take it now so a static deploy
+    // explains itself instead of spinning forever.
+    const status = aiStatus ?? (await fetchTutorStatus());
+    if (!status.configured) {
+      setAiStatus(status);
       setIsAiLoading(false);
+      return;
+    }
+
+    await streamTutor(
+      {
+        messages: [{ role: 'user', content: q }],
+        language: (language === 'en' ? 'en' : 'ar') as TutorLanguage,
+        mode: 'explain',
+      },
+      {
+        signal: controller.signal,
+        onMeta: meta => setAiCitations(meta.citations),
+        onDelta: text => setAiResponse(previous => previous + text),
+        onError: failure => setAiFailure(failure),
+        onDone: () => setIsAiLoading(false),
+      }
+    );
+
+    if (aiAbort.current === controller) aiAbort.current = null;
+    setIsAiLoading(false);
+  };
+
+  const openCitation = (citation: TutorCitation) => {
+    if (citation.kind === 'textbook' && citation.pageNumber) {
+      setEdbTarget(`edb-${citation.bookId}`);
+      setEdbTargetPage(citation.pageNumber);
+      setActiveSubTab('edb');
+    } else if (citation.courseId) {
+      setCourseTarget(citation.courseId);
+      setActiveSubTab('courses');
     }
   };
+
+  const aiUnavailable = aiStatus !== null && !aiStatus.configured;
 
   return (
     <section className="py-16 md:py-24 bg-[#080914] border-b border-[#21264c]">
@@ -301,6 +358,11 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             language={language}
             onNavigateToModule={(dId, lIdx, mId) => handleNavigateToCurriculumModule(dId, lIdx, mId)}
             onLaunchQuiz={(dId, lId, mId, mTitle) => handleLaunchModuleQuiz(dId, lId as any, mId, mTitle)}
+            onOpenTarget={openSearchTarget}
+            onAskTutor={question => {
+              setActiveSubTab('ask_ai');
+              void handleAskAiTutor(question);
+            }}
           />
         </div>
 
@@ -769,6 +831,7 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
           <EdbLibraryView
             language={language}
             initialBookId={edbTarget}
+            initialPage={edbTargetPage}
             onOpenCourse={(courseId) => {
               setCourseTarget(courseId);
               setActiveSubTab('courses');
@@ -1293,69 +1356,172 @@ export const EducationalAcademy: React.FC<EducationalAcademyProps> = ({ language
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-1.5 text-xs font-mono-code font-bold text-amber-400 mb-1">
                 <BrainCircuit className="w-4 h-4" />
-                <span>AI NDT LEVEL III CONSULTANT</span>
+                <span>AI NDT LEVEL III CONSULTANT{aiStatus?.configured ? ` · ${aiStatus.model}` : ''}</span>
               </div>
               <h3 className="text-2xl font-black text-white">
                 {isAr ? 'اسأل أستاذ NDT والمعالجة الحرارية الذكي' : 'Ask the Senior NDT & Metallurgy Tutor'}
               </h3>
               <p className="text-xs sm:text-sm text-slate-400 mt-1">
                 {isAr
-                  ? 'اكتب أي موضوع أو معضلة هندسية تخص اللحام أو الفحص أو الكود لتحصل على شرح علمي عميق.'
-                  : 'Ask any technical concept regarding metallurgy, flaw characterization, or code rules.'}
+                  ? `الإجابات تُبنى من مكتبة إنسكو نفسها (${corpusStats.pages} صفحة و${corpusStats.lessons} درساً)، وكل فكرة تُسند إلى الصفحة التي جاءت منها.`
+                  : `Answers are built from the INSCO library itself (${corpusStats.pages} pages, ${corpusStats.lessons} lessons), and every claim cites the page it came from.`}
               </p>
             </div>
 
-            {/* Quick Question Pills */}
-            <div className="flex flex-wrap gap-2">
-              {[
-                'كيف نميز بين عيب Lack of Fusion وعيب Porosity في قراءة Phased Array؟',
-                'ما هي متطلبات شهادة ASNT Level II والتدريب المطلوب لكل طريقة؟',
-                'ما هو تأثير الهيدروجين في الشروخ الباردة وما دور التسخين المسبق Preheat؟',
-                'ما الفرق بين اختبار الصلادة بطريقة Leeb وطريقة UCI بالموقع؟'
-              ].map((pill, i) => (
+            {aiStatus === null && (
+              <div className="flex items-center gap-3 text-xs text-slate-400">
+                <Sparkles className="w-4 h-4 animate-spin text-amber-400" />
+                {isAr ? 'جارٍ التحقق من إعدادات المستشار…' : 'Checking tutor configuration…'}
+              </div>
+            )}
+
+            {aiUnavailable && (
+              <div className="rounded-xl border border-amber-500/40 bg-amber-500/5 p-5 space-y-3">
+                <p className="flex items-center gap-2 text-sm font-bold text-amber-200">
+                  <Info className="w-4 h-4" />
+                  {isAr ? 'المستشار الذكي غير مُهيّأ على هذه النسخة' : 'The tutor is not configured on this deployment'}
+                </p>
+                <p className="text-xs leading-6 text-slate-300">
+                  {isAr
+                    ? 'هذا الموقع يُنشر كملفات ثابتة، والمفتاح لا يجوز أن يوضع في المتصفح. المكتبة والمناهج والبحث تعمل بالكامل بدون المستشار. لتفعيل الأسئلة الحرة، شغّل بوابة الخادم مع مفتاح Gemini، وحدّد عنوانها في VITE_AI_BASE_URL.'
+                    : 'This site ships as static files, and an API key must never live in the browser. The library, courses and search work fully without the tutor. To enable free-form answers, run the gateway with a Gemini key and point VITE_AI_BASE_URL at it.'}
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  {isAr
+                    ? 'سبب الحالة: '
+                    : 'Reported reason: '}
+                  <code className="text-slate-300">
+                    {aiStatus?.reason === 'unreachable'
+                      ? isAr
+                        ? 'لا يوجد خادم مستشار على هذا النطاق'
+                        : 'no tutor gateway on this domain'
+                      : aiStatus?.reason === 'no_key'
+                        ? isAr
+                          ? 'الخادم يعمل بدون GEMINI_API_KEY'
+                          : 'server running without GEMINI_API_KEY'
+                        : isAr
+                          ? 'تعذّرت تهيئة عميل النموذج'
+                          : 'model client failed to initialise'}
+                  </code>
+                </p>
                 <button
-                  key={i}
-                  onClick={() => {
-                    setAiTopic(pill);
-                    handleAskAiTutor(pill);
-                  }}
-                  className="text-xs text-slate-300 hover:text-amber-300 bg-[#0c0e20] hover:bg-[#161a3d] px-3 py-1.5 rounded-lg border border-[#212754] transition cursor-pointer"
+                  type="button"
+                  onClick={() => setActiveSubTab('edb')}
+                  className="rounded-lg bg-amber-500 px-4 py-2 text-xs font-black text-slate-950 hover:bg-amber-400"
                 >
-                  {pill}
+                  {isAr ? 'ابحث في المكتبة بدلاً من ذلك' : 'Search the library instead'}
                 </button>
-              ))}
-            </div>
+              </div>
+            )}
 
-            {/* Input Box */}
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={aiTopic}
-                onChange={(e) => setAiTopic(e.target.value)}
-                placeholder={isAr ? 'اكتب موضوع الاستفسار التعليمي...' : 'Enter your question for the tutor...'}
-                className="flex-1 bg-[#0b0c1c] border border-[#272e63] rounded-xl px-4 py-3 text-white text-xs sm:text-sm focus:outline-none focus:border-amber-400"
-              />
-              <button
-                onClick={() => handleAskAiTutor()}
-                disabled={!aiTopic.trim() || isAiLoading}
-                className="px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-bold text-xs sm:text-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-              >
-                <Sparkles className="w-4 h-4" />
-                <span>{isAr ? 'شرح الموضوع' : 'Explain'}</span>
-              </button>
-            </div>
+            {!aiUnavailable && aiStatus !== null && (
+              <>
+                <div className="flex flex-wrap gap-2">
+                  {(isAr
+                    ? [
+                        'كيف نميز بين عيب Lack of Fusion وعيب Porosity في قراءة Phased Array؟',
+                        'ما هي متطلبات الإضاءة وحدة الإبصار في الفحص البصري؟',
+                        'ما هو تأثير الهيدروجين في الشروخ الباردة وما دور التسخين المسبق؟',
+                        'كيف نحسب عمق التغلغل في التيارات الدوامية؟',
+                      ]
+                    : [
+                        'How do I tell lack of fusion from porosity on a phased array scan?',
+                        'What are the illumination and vision requirements for visual testing?',
+                        'How does hydrogen cause cold cracking, and what does preheat do?',
+                        'How is the standard depth of penetration calculated in eddy current?',
+                      ]
+                  ).map(pill => (
+                    <button
+                      key={pill}
+                      type="button"
+                      onClick={() => {
+                        setAiTopic(pill);
+                        void handleAskAiTutor(pill);
+                      }}
+                      className="text-xs text-slate-300 hover:text-amber-300 bg-[#0c0e20] hover:bg-[#161a3d] px-3 py-1.5 rounded-lg border border-[#212754] transition cursor-pointer"
+                    >
+                      {pill}
+                    </button>
+                  ))}
+                </div>
 
-            {/* Tutor Response Box */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={aiTopic}
+                    onChange={e => setAiTopic(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') void handleAskAiTutor();
+                    }}
+                    maxLength={TUTOR_LIMITS.messageChars}
+                    placeholder={isAr ? 'اكتب موضوع الاستفسار التعليمي...' : 'Enter your question for the tutor...'}
+                    className="flex-1 bg-[#0b0c1c] border border-[#272e63] rounded-xl px-4 py-3 text-white text-xs sm:text-sm focus:outline-none focus:border-amber-400"
+                  />
+                  {isAiLoading ? (
+                    <button
+                      type="button"
+                      onClick={stopAiTutor}
+                      className="px-5 py-3 rounded-xl border border-rose-400/50 text-rose-300 font-bold text-xs sm:text-sm flex items-center gap-1.5"
+                    >
+                      <CircleStop className="w-4 h-4" />
+                      <span>{isAr ? 'إيقاف' : 'Stop'}</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => void handleAskAiTutor()}
+                      disabled={!aiTopic.trim()}
+                      className="px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 text-slate-950 font-bold text-xs sm:text-sm transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      <span>{isAr ? 'شرح الموضوع' : 'Explain'}</span>
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+
+            {aiFailure && (
+              <p role="alert" className="rounded-xl border border-rose-400/40 bg-rose-500/10 p-4 text-xs leading-6 text-rose-200">
+                {failureMessage(aiFailure.code, language === 'en' ? 'en' : 'ar')}
+              </p>
+            )}
+
             {(isAiLoading || aiResponse) && (
-              <div className="bg-[#0b0c1c] p-6 rounded-xl border border-amber-500/30 text-xs sm:text-sm leading-relaxed text-slate-200 whitespace-pre-line animate-fadeIn">
-                {isAiLoading ? (
-                  <div className="flex items-center gap-3 text-amber-400">
+              <div className="bg-[#0b0c1c] p-6 rounded-xl border border-amber-500/30 text-xs sm:text-sm leading-relaxed text-slate-200 whitespace-pre-line">
+                {aiResponse || (
+                  <span className="flex items-center gap-3 text-amber-400">
                     <Sparkles className="w-5 h-5 animate-spin" />
-                    <span>{isAr ? 'جاري تحضير الشرح الهندسي التخصصي...' : 'Preparing in-depth metallurgical analysis...'}</span>
-                  </div>
-                ) : (
-                  aiResponse
+                    {isAr ? 'جارٍ استرجاع المقاطع من المكتبة ثم الصياغة…' : 'Retrieving library passages, then composing…'}
+                  </span>
                 )}
+              </div>
+            )}
+
+            {aiCitations.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  {isAr ? 'المصادر التي استند إليها' : 'Sources behind the answer'}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {aiCitations.map(citation => (
+                    <button
+                      key={citation.id}
+                      type="button"
+                      onClick={() => openCitation(citation)}
+                      className="max-w-full truncate rounded-lg border border-[#2a3260] bg-[#0d1028] px-3 py-1.5 text-[11px] text-slate-300 hover:border-amber-400 hover:text-amber-200"
+                      title={citation.id}
+                    >
+                      {isAr ? 'ص' : 'p'}
+                      {citation.pageNumber ?? '—'} · {citation.title[language] || citation.title.ar}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-slate-500">
+                  {isAr
+                    ? 'مادة دراسة ذاتية غير معتمدة. القرارات الفنية تُبنى على نسخة الكود المرخصة في العقد.'
+                    : 'Self-study material, not accredited. Technical decisions follow the licensed contract code.'}
+                </p>
               </div>
             )}
           </div>

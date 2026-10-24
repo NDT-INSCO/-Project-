@@ -88,3 +88,20 @@ test('initialSubTab wins over the URL hash (embeds and tests stay deterministic)
   const ui = render(<EducationalAcademy language="en" initialSubTab="knowledge" />);
   assert.doesNotMatch(ui.container.textContent || '', /EDB Flipbook Library \(11/i);
 });
+
+test('a shared academy link opens the academy itself, not the company profile', () => {
+  dom.window.location.hash = '#courses';
+  const ui = render(<App />);
+  // The academy header belongs to App, so it proves the view switched before
+  // the (code-split) academy chunk has even loaded.
+  assert.match(ui.container.textContent || '', /أكاديمية إنسكو الهندسية للفحص غير الإتلافي/);
+  // The old build forced the first tab and overwrote the requested link.
+  assert.equal(dom.window.location.hash, '#courses');
+});
+
+test('leaving the academy clears the hash so the address bar stops lying', () => {
+  dom.window.location.hash = '#edb';
+  const ui = render(<App />);
+  fireEvent.click(ui.getByRole('button', { name: /الرئيسية - شركة إنسكو/ }));
+  assert.equal(dom.window.location.hash, '');
+});

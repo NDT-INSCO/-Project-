@@ -68,6 +68,8 @@ npm run verify
 - **مراقبة الروابط**: `scripts/check-links.ts` + `.github/workflows/link-monitor.yml` (أسبوعي).
 - **سجل المراجعة**: `src/data/ndeEd/review.ts` — كل المقررات `pending` حتى التوقيع.
 - **ملف الحالة الكامل**: `documentation/STATUS_AR.md` (ما تم، ما بقي، وكيف تتحقق).
+- **المستشار الذكي**: `documentation/AI_STUDIO_AR.md` — كيفية عمل Gemini خلف
+  gateway خادمي، وما يجب ألا يُلمس (المفتاح، النص الجاهز، عتبة البحث).
 
 ## 8. قراءة إضافية
 - `docs/HANDOVER_AR.md` — دليل التسليم (14 قسم).
